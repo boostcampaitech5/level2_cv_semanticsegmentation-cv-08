@@ -1,10 +1,11 @@
 {
+    "model": "fcn32",
     "image_root": "/opt/ml/input/code/train/DCM",
     "label_root": "/opt/ml/input/code/train/outputs_json",
     "test_image_root": "/opt/ml/input/code/test/DCM",
     "class_num": 29,
     "loss": "BCEWithLogitsLoss",
-    "epochs": 10,
+    "epochs": 200,
     "train_batch_size": 8,
     "show_train_step": 2,
     "valid_batch_size": 2,

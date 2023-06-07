@@ -10,11 +10,13 @@ import torch.nn.functional as F
 from metric import dice_coef
 import os
 import loss as module_loss
+import model as CustomModel
 
 def main(config):
     print(f'Start trainig.....')
     
-    model = _model.fcn_resnet50(config)
+    # model = _model.fcn_resnet50(config)
+    model = getattr(CustomModel, config['model'])(config)
     model.cuda()
     
     optimizer = partial(getattr(torch.optim, config['optimizer']['type']))
@@ -49,7 +51,7 @@ def main(config):
         for step, (images, masks) in enumerate(train_loader):
             image, masks = images.cuda(), masks.cuda()
             
-            outputs = model.train_step(image, masks)
+            outputs = model.train_step(image)
             
             optimizer.zero_grad()
             loss = criterion(outputs, masks)
