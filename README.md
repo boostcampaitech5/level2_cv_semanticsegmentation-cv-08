@@ -16,9 +16,9 @@
     - augmentation이 있긴하지만 현재 적용은 되지 않아요!
 
 ##TODO
-1. augmentation이 현재는 dataset안에 들어가 있는데, 이걸 json으로 조절할 수 있도록 만들어야함.
+1. augmentation이 현재는 dataset안에 들어가 있는데, 이걸 json으로 조절할 수 있도록 만들어야함
 2. validation in train loop(o)
 3. logging(wandb)
 4. 학습을 이어서 하기 위한 코드 만들기
-5. 설명을 위한 README.md 만들기
-6. inference.py 만들기
+5. 설명을 위한 README.md 만들기(진행중)
+6. inference.py 만들기(o)
