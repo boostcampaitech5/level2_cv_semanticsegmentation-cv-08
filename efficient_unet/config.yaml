@@ -1,0 +1,26 @@
+# set dir or path
+image_dir: "/opt/ml/input/data/train/DCM"
+label_dir: "/opt/ml/input/data/train/outputs_json"
+test_image_dir: "/opt/ml/input/data/test/DCM"
+
+save_model_dir: "/opt/ml/input/results/baseline_efficient_unet"
+save_model_fname: "efficient_unet_best_model.pt"
+
+save_submit_dir: "/opt/ml/input/results/baseline_efficient_unet"
+save_submit_fname: "efficient_unet_best_model.csv"
+
+# set model
+encoder_name: "efficientnet-b0"
+encoder_weights: "imagenet"
+
+# hyperparameter
+seed: 42
+batch_size: 8
+num_workers: 2
+learning_rate: 0.0001   # 1e-4
+weight_decay: 0.000001  # 1e-6
+epochs: 100
+
+# set log
+log_step: 20
+val_every: 5
