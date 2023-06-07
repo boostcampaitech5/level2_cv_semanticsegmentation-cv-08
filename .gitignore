@@ -1,0 +1,14 @@
+model_dir
+
+CSVs
+
+.git
+
+__pycache__
+
+test.py
+
+*.ipynb
+
+
+

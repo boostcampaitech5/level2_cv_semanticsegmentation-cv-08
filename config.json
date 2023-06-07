@@ -1,0 +1,25 @@
+{
+    "image_root": "/opt/ml/input/code/train/DCM",
+    "label_root": "/opt/ml/input/code/train/outputs_json",
+    "test_image_root": "/opt/ml/input/code/test/DCM",
+    "class_num": 29,
+    "loss": "BCEWithLogitsLoss",
+    "epochs": 10,
+    "train_batch_size": 8,
+    "show_train_step": 2,
+    "valid_batch_size": 2,
+    "optimizer": {
+        "type": "Adam",
+        "parameters": {
+            "lr": 0.001
+        }
+    },
+    "augmentation": {
+        "p_aug": 0.5,
+        "transform": [
+            "resize"
+        ]
+    },
+    "model_dir": "./model_dir",
+    "model_file_name": "best.pt"
+}
