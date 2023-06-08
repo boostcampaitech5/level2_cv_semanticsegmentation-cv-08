@@ -53,13 +53,13 @@ def main(args):
     )
     valid_loader = DataLoader(
         dataset=valid_dataset, 
-        batch_size=args.batch_size,
+        batch_size=8,
         shuffle=False,
-        num_workers=2,
+        num_workers=0,
         drop_last=False
     )
-    
-    model = smp.Unet(
+
+    model = getattr(smp, args.model)(
         encoder_name=args.encoder_name, # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
         encoder_weights=args.encoder_weights,     # use `imagenet` pre-trained weights for encoder initialization
         in_channels=3,                  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
@@ -70,7 +70,7 @@ def main(args):
     criterion = nn.BCEWithLogitsLoss()
 
     # Optimizer 정의
-    optimizer = optim.Adam(params=model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+    optimizer = getattr(optim, args.optimizer)(params=model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     
     train(args, model, train_loader, valid_loader, criterion, optimizer)
 
