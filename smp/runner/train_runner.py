@@ -93,7 +93,7 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                 patience += 1
                 if patience >= patience_limit: break
                             
-    wandb.log({'epoch': epoch})
+        wandb.log({'epoch': epoch})
       
 def valid(args, epoch, model, data_loader, criterion, thr=0.5):
     print(f'Start validation #{epoch:2d}')
