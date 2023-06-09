@@ -1,18 +1,18 @@
 {
     "model": "fcn_resnet50",
     "smp": {
-        "use_smp": true,
+        "use_smp": false,
         "model": "DeepLabV3Plus",
         "encoder_name": "efficientnet-b0",
         "encoder_weights": "imagenet"
     },
     "image_root": "/opt/ml/data/train/DCM",
     "label_root": "/opt/ml/data/train/outputs_json",
-    "train_cache_data_dir": "/opt/ml/input/code/train_cache",
-    "valid_cache_data_dir": "/opt/ml/input/code/valid_cache",
+    "train_cache_data_dir": "/opt/ml/cache_data_256/train",
+    "valid_cache_data_dir": "/opt/ml/cache_data_256/valid",
     "test_image_root": "/opt/ml/data/test/DCM",
-    "dataset": "XRayDataset",
-    "input_size": 256,
+    "dataset": "CacheDataset",
+    "input_size": 512,
     "num_classes": 29,
     "loss": "BCEWithLogitsLoss",
     "epochs": 2,
@@ -22,6 +22,12 @@
         "type": "Adam",
         "parameters": {
             "lr": 0.001
+        }
+    },
+    "augmentations": {
+        "name": "base_augmentation",
+        "parameters": {
+            "resize": 2048
         }
     },
     "model_dir": "./model_dir/test",
@@ -34,9 +40,10 @@
     "num_workers": 4,
     "accumulation_step": 1,
     "wandb": {
-        "use_wandb": true,
+        "use_wandb": false,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
         "run_name": "test"
-    }
+    },
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/test/best.pt"
 }

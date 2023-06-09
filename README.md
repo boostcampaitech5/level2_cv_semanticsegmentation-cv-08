@@ -3,6 +3,22 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
+<br />
+
+## Changes
+
+**`2023-06-09`**: 
+- Add Rotate, Horizontal Flip Augmentation
+
+**`2023-06-09`**: 
+- Refactoring Baseline
+- Integration modules
+
+<br />
+
+----
+<br />
+
 ## Contributors ?
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):

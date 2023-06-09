@@ -11,7 +11,7 @@ from torch.utils.data import Dataset
 
 
 class XRayInferenceDataset(Dataset):
-    def __init__(self, config):
+    def __init__(self, config, transforms=None):
         self.IMAGE_ROOT = config.test_image_root
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=self.IMAGE_ROOT)
@@ -24,7 +24,10 @@ class XRayInferenceDataset(Dataset):
         _filenames = np.array(sorted(_filenames))
 
         self.filenames = _filenames
-        self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
+        if transforms is None:
+            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
+        else:
+            self.transforms = transforms
 
     def __len__(self):
         return len(self.filenames)
