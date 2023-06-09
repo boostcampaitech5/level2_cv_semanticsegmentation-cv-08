@@ -71,16 +71,13 @@ class XRayDataset(Dataset):
         self.filenames = filenames
         self.labelnames = labelnames
         self.is_train = is_train
-        
+
         if transforms is None:
             print("transforms is None")
             print(transforms)
-            self.transforms = A.Compose([
-                A.Resize(config.input_size, config.input_size)
-            ], p=1.0)
+            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
         else:
             self.transforms = transforms
-    
 
     def __len__(self):
         return len(self.filenames)

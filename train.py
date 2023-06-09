@@ -8,15 +8,11 @@ import torch
 import wandb
 from torch.utils.data import DataLoader
 
+import augmentations
 import datasets
 import loss
 import models
 from runner import train
-import segmentation_models_pytorch as smp
-import wandb
-import json
-import os
-import augmentations
 from utils import read_json
 
 
@@ -51,12 +47,16 @@ def main(config):
     criterion = getattr(loss, config.loss)()
 
     if config.augmentations and config.dataset != "CacheDataset":
-        train_aug = getattr(augmentations, config.augmentations.name)(**config.augmentations.parameters)
-        valid_aug = getattr(augmentations, "base_augmentation")(config.augmentations.parameters.resize,  mean=0.13189, std=0.17733)
-    else: # config.augmentation이 false일 경우 기본 데이터셋이면 config.input_size에 맞게 resize, pickle 데이터셋으면 변환없이 그대로 입력
+        train_aug = getattr(augmentations, config.augmentations.name)(
+            **config.augmentations.parameters
+        )
+        valid_aug = getattr(augmentations, "base_augmentation")(
+            config.augmentations.parameters.resize, mean=0.13189, std=0.17733
+        )
+    else:  # config.augmentation이 false일 경우 기본 데이터셋이면 config.input_size에 맞게 resize, pickle 데이터셋으면 변환없이 그대로 입력
         train_aug = None
         valid_aug = None
-        
+
     train_dataset = getattr(datasets, config.dataset)(config, is_train=True, transforms=train_aug)
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -65,7 +65,7 @@ def main(config):
         num_workers=4,
         drop_last=True,
     )
-    
+
     valid_dataset = getattr(datasets, config.dataset)(config, is_train=False, transforms=valid_aug)
     valid_loader = DataLoader(
         dataset=valid_dataset,

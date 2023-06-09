@@ -2,12 +2,11 @@
 import datetime
 import os
 import sys
+import time
 
 # torch
 import torch
 import torch.nn.functional as F
-import time
-import sys
 
 # external library
 import wandb
@@ -22,12 +21,14 @@ from utils import CLASSES, set_seed
 
 def train(config, model, data_loader, val_loader, criterion, optimizer):
     model_name = config.smp.model if config.smp.use_smp else config.model
-    print(f'Start training..\n'
-          f'model : {model_name}\n'
-          f'epochs : {config.epochs}\n'
-          f'batch size : {config.train_batch_size}\n'
-          f'fp16 : {config.fp16}\n'
-          f'Gradient Accumulation Step : {config.accumulation_step}\n',)
+    print(
+        f"Start training..\n"
+        f"model : {model_name}\n"
+        f"epochs : {config.epochs}\n"
+        f"batch size : {config.train_batch_size}\n"
+        f"fp16 : {config.fp16}\n"
+        f"Gradient Accumulation Step : {config.accumulation_step}\n",
+    )
     set_seed(config.seed)
 
     # Early Stop
@@ -89,7 +90,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                     break
         ed = time.time()
         print(f"Epoch {epoch} : {(ed-st)} s")
-                                  
+
+
 def valid(config, epoch, model, data_loader, criterion, thr=0.5):
     print(f"Start validation #{epoch:2d}")
     set_seed(config.seed)

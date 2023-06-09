@@ -4,18 +4,18 @@ import os
 from glob import glob
 
 # external library
-import albumentations as A
 import pandas as pd
 
 # torch
 import torch
 from torch.utils.data import DataLoader
 
+import augmentations
+
 # utils
 from datasets.test_dataset import XRayInferenceDataset
 from runner.test_runner import test
 from utils import read_json
-import augmentations
 
 
 def main(config):
