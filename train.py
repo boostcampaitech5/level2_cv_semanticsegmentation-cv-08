@@ -11,8 +11,11 @@ from metric import dice_coef
 import os
 import loss as module_loss
 import model as CustomModel
+import utils
 
 def main(config):
+    utils.set_seed(config['seed'])
+    
     print(f'Start trainig.....')
     
     model = getattr(CustomModel, config['model'])(config)
@@ -25,7 +28,8 @@ def main(config):
     best_dice = 0.
     epochs = config['epochs']
     
-    train_dataset = dataset.XRayDataset(config, is_train=True)
+    # train은 pickle로 가져오는게 더욱 빠르다...
+    train_dataset = getattr(dataset, config['dataset'])(config, is_train=True)
     train_loader = DataLoader(
         dataset = train_dataset,
         batch_size = config['train_batch_size'],
@@ -34,7 +38,8 @@ def main(config):
         drop_last=True
     )
     
-    valid_dataset = dataset.XRayDataset(config, is_train=False)
+    # validation의 경우 pickle로 가져오는게 더 오래걸린다.... 왜 이런거지??
+    valid_dataset = getattr(dataset, config['dataset'])(config, is_train=False)
     valid_loader = DataLoader(
         dataset = valid_dataset,
         batch_size = config['valid_batch_size'],

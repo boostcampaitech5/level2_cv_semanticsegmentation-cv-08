@@ -76,7 +76,10 @@ class fcn32(nn.Module):
     def train_step(self, images):
         h = self.forward(images)
         return h
-        
+
+# class fcn8(nn.Module):
+#     def __init__(self, config):
+          
 if __name__=="__main__":
     import argparse
     from parse_config import ConfigParser
@@ -85,6 +88,5 @@ if __name__=="__main__":
     args.add_argument('-c', '--config', default='./config.json')
     config = ConfigParser.from_args(args)
     
-    net = fcn32(config)
-    for n, p in net.named_parameters():
-        print(n, p)
+    net = fcn_resnet50(config)
+    print(net)    

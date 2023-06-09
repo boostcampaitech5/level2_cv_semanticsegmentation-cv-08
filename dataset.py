@@ -9,11 +9,13 @@ import argparse
 from parse_config import ConfigParser
 import collections
 import albumentations as A
+import time
+import pickle
+import gzip
 
 class XRayDataset(Dataset):
     def __init__(self, config, is_train=True):
         self.config = config
-        
         #set -> list(using sort) -> numpy
         #이 부분이 시간이 오래걸릴 것 같은데 최적화하는 방법이 없을까??
         #line number 19 to 37
@@ -90,7 +92,7 @@ class XRayDataset(Dataset):
     
     def __len__(self):
         return len(self.filenames)
-    
+
     def __getitem__(self, item):
         image_name = self.filenames[item]
         image_path = os.path.join(self.config['image_root'], image_name)
@@ -111,6 +113,7 @@ class XRayDataset(Dataset):
         annotations = annotations["annotations"]
         
         # iterate each class
+        # 0.55초 -> 0.51초
         for ann in annotations:
             c = ann["label"]
             #CLASS2IND
@@ -119,23 +122,27 @@ class XRayDataset(Dataset):
             
             # polygon to mask
             class_label = np.zeros(image.shape[:2], dtype=np.uint8)
+            
             cv2.fillPoly(class_label, [points], 1)
             label[..., class_ind] = class_label
-        
+
+        # 되게 오래걸린다.
+        # 0.3초
         if self.transforms is not None:
-            inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
+            # inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
+            inputs = {"image": image, "mask": label}
             result = self.transforms(**inputs)
             
             image = result["image"]
-            label = result["mask"] if self.is_train else label
-            
+            # label = result["mask"] if self.is_train else label
+            label = result['mask']
+        
         # to tenser will be done later
         image = image.transpose(2, 0, 1)    # make channel first
         label = label.transpose(2, 0, 1)
         
         image = torch.from_numpy(image).float()
         label = torch.from_numpy(label).float()
-            
         return image, label
     
     
@@ -185,25 +192,52 @@ class XRayInferenceDataset(Dataset):
         image = image.transpose(2, 0, 1)    # make channel first
         image = torch.from_numpy(image).float()
         return image, image_name
+   
+class cache_dataset(Dataset):
+    def __init__(self, config, is_train=True):
+        super().__init__()
+        
+        self.CLASSES=[
+            'finger-1', 'finger-2', 'finger-3', 'finger-4', 'finger-5',
+            'finger-6', 'finger-7', 'finger-8', 'finger-9', 'finger-10',
+            'finger-11', 'finger-12', 'finger-13', 'finger-14', 'finger-15',
+            'finger-16', 'finger-17', 'finger-18', 'finger-19', 'Trapezium',
+            'Trapezoid', 'Capitate', 'Hamate', 'Scaphoid', 'Lunate',
+            'Triquetrum', 'Pisiform', 'Radius', 'Ulna',
+        ]
+        
+        if is_train:
+            self.datadir = config['train_cache_data_dir']
+            self._filename = [n for n in os.listdir(self.datadir) if n.endswith('pkl')]
+        else:
+            self.datadir = config['valid_cache_data_dir']
+            self._filename = [n for n in os.listdir(self.datadir) if n.endswith('pkl')]
+        
+    def __getitem__(self, idx):
+        with gzip.open(os.path.join(self.datadir, self._filename[idx]), mode='rb') as f:
+            p = pickle.load(f)
+        return p[0], p[1]
     
+    def __len__(self):
+        return len(self._filename)  
+               
 if __name__=="__main__":    
     args = argparse.ArgumentParser(description='Segmentation Template')
-    args.add_argument('-c', '--config', default=None, type=str,
+    args.add_argument('-c', '--config', default='./config.json', type=str,
                     help='config file path (default: None)')
     config = ConfigParser.from_args(args)
     
-    tf = A.Resize(512, 512)
-    
-    train_dataset = XRayDataset(config, is_train=True)
+    train_dataset = cache_dataset(config, is_train=False)
     train_loader = DataLoader(
         dataset = train_dataset,
-        batch_size = config['train_batch_size'],
-        shuffle=True,
+        batch_size = config['valid_batch_size'],
+        shuffle=False,
         num_workers=8,
         drop_last=True
     )
     
-    for idx, (images, masks) in enumerate(train_loader):
-        print(images.shape)
-        print(masks.shape)
-        break
+    for i in range(10):
+        start = time.time()
+        for idx, (images, masks) in enumerate(train_loader):
+            print(idx)
+        print(f'end : {time.time() - start:.4f}s')
