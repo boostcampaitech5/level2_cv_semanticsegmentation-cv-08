@@ -5,6 +5,7 @@ from glob import glob
 from argparse import ArgumentParser
 
 # external library
+import wandb
 import albumentations as A
 import segmentation_models_pytorch as smp
 
@@ -67,6 +68,10 @@ def main(args):
         classes=len(CLASSES),                       # model output channels (number of classes in your dataset)
     )
     
+    if args.train_continue:
+        print(f"Load {args.save_model_fname} weights")
+        model.load_state_dict(torch.load(os.path.join(args.save_model_dir, args.save_model_fname)).state_dict())
+    
     # Loss function 정의
     criterion = nn.BCEWithLogitsLoss()
 
@@ -102,5 +107,13 @@ if __name__ == '__main__':
     
     # check save model dir
     os.makedirs(args.save_model_dir, exist_ok=True)
+    
+    # wandb
+    wandb.init(
+        entity="kgw5430",
+        project="semantic-segmentation",
+        name=f'{args.model}_{args.encoder_name}',
+        config=args,
+    )
     
     main(args)
