@@ -1,0 +1,42 @@
+{
+    "model": "fcn_resnet50",
+    "smp": {
+        "use_smp": true,
+        "model": "DeepLabV3Plus",
+        "encoder_name": "efficientnet-b0",
+        "encoder_weights": "imagenet"
+    },
+    "image_root": "/opt/ml/data/train/DCM",
+    "label_root": "/opt/ml/data/train/outputs_json",
+    "train_cache_data_dir": "/opt/ml/input/code/train_cache",
+    "valid_cache_data_dir": "/opt/ml/input/code/valid_cache",
+    "test_image_root": "/opt/ml/data/test/DCM",
+    "dataset": "XRayDataset",
+    "input_size": 256,
+    "num_classes": 29,
+    "loss": "BCEWithLogitsLoss",
+    "epochs": 2,
+    "train_batch_size": 2,
+    "valid_batch_size": 8,
+    "optimizer": {
+        "type": "Adam",
+        "parameters": {
+            "lr": 0.001
+        }
+    },
+    "model_dir": "./model_dir/test",
+    "model_file_name": "best.pt",
+    "seed": 42,
+    "log_step": 20,
+    "val_every": 1,
+    "patience_limit": 10,
+    "fp16": false,
+    "num_workers": 4,
+    "accumulation_step": 1,
+    "wandb": {
+        "use_wandb": true,
+        "entity": "ejrtks1020",
+        "project": "level2_segmentation",
+        "run_name": "test"
+    }
+}
