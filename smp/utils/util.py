@@ -3,6 +3,7 @@ import random
 import numpy as np
     
 # define classes
+# fmt: off
 CLASSES = [
     'finger-1', 'finger-2', 'finger-3', 'finger-4', 'finger-5',
     'finger-6', 'finger-7', 'finger-8', 'finger-9', 'finger-10',
@@ -26,6 +27,7 @@ PALETTE = [
     (0, 125, 92), (209, 0, 151), (188, 208, 182), (0, 220, 176),
 ]
 
+# fmt: on
 class AttributeDict(dict):
     """ 
     Can dot(.) access to members of dictionary.

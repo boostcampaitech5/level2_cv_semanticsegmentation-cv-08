@@ -1,4 +1,4 @@
-import cv2
-import random
-import albumentations as A
+import cv2 # noqa
+import random # noqa
+import albumentations as A # noqa
 
