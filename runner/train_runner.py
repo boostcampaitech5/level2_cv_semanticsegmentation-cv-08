@@ -10,7 +10,7 @@ from tqdm.auto import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import time
 import sys
 sys.path.append("..")
 # utils
@@ -22,7 +22,6 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
     print(f'Start training..\n'
           f'model : {model_name}\n'
           f'epochs : {config.epochs}\n'
-          f'input size : {config.input_size}\n'
           f'batch size : {config.train_batch_size}\n'
           f'fp16 : {config.fp16}\n'
           f'Gradient Accumulation Step : {config.accumulation_step}\n',)
@@ -38,6 +37,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
         scaler = torch.cuda.amp.GradScaler()
     
     for epoch in range(config.epochs):
+        st = time.time()
         if config.wandb.use_wandb:
             wandb.log({'epoch': epoch})
         model.train()
@@ -86,6 +86,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                 if patience >= patience_limit:
                     print(f"over {patience_limit}, Early Stopping....")
                     break
+        ed = time.time()
+        print(f"Epoch {epoch} : {(ed-st)} s")
                                   
 def valid(config, epoch, model, data_loader, criterion, thr=0.5):
     print(f'Start validation #{epoch:2d}')

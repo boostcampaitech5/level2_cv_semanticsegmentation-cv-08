@@ -11,6 +11,8 @@ import segmentation_models_pytorch as smp
 import wandb
 import json
 import os
+import augmentations
+
 def main(config):
     if not os.path.exists(config.model_dir):
         os.makedirs(config.model_dir)
@@ -40,8 +42,15 @@ def main(config):
     optimizer = partial(getattr(torch.optim, config.optimizer.type))
     optimizer = optimizer(model.parameters(), **config.optimizer.parameters)
     criterion = getattr(loss, config.loss)()
-    
-    train_dataset = getattr(datasets, config.dataset)(config, is_train=True)
+
+    if config.augmentations and config.dataset != "CacheDataset":
+        train_aug = getattr(augmentations, config.augmentations.name)(**config.augmentations.parameters)
+        valid_aug = getattr(augmentations, "base_augmentation")(config.augmentations.parameters.resize,  mean=0.13189, std=0.17733)
+    else: # config.augmentation이 false일 경우 기본 데이터셋이면 config.input_size에 맞게 resize, pickle 데이터셋으면 변환없이 그대로 입력
+        train_aug = None
+        valid_aug = None
+        
+    train_dataset = getattr(datasets, config.dataset)(config, is_train=True, transforms=train_aug)
     train_loader = DataLoader(
         dataset = train_dataset,
         batch_size = config.train_batch_size,
@@ -49,8 +58,7 @@ def main(config):
         num_workers=4,
         drop_last=True
     )
-    
-    valid_dataset = getattr(datasets, config.dataset)(config, is_train=False)
+    valid_dataset = getattr(datasets, config.dataset)(config, is_train=False, transforms=valid_aug)
     valid_loader = DataLoader(
         dataset = valid_dataset,
         batch_size = config.valid_batch_size,

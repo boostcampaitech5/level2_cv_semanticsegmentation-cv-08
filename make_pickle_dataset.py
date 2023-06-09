@@ -5,6 +5,7 @@ from tqdm import tqdm
 import gzip
 from utils import read_json
 import os
+import augmentations
 
 def main(config, target):
     if not os.path.exists(target):
@@ -13,8 +14,16 @@ def main(config, target):
 
     train_path = os.path.join(target, "train")
     valid_path = os.path.join(target, "valid")
+
+    if config.augmentations:
+        train_aug = getattr(augmentations, config.augmentations.name)(**config.augmentations.parameters)
+        valid_aug = getattr(augmentations, "base_augmentation")(config.augmentations.parameters.resize,  mean=0.13189, std=0.17733)
+    else: # config.augmentation이 false일 경우 기본 데이터셋이면 config.input_size에 맞게 resize, pickle 데이터셋으면 변환없이 그대로 입력
+        train_aug = None
+        valid_aug = None
+
     train_dataset = XRayDataset(
-        config
+        config, transforms=train_aug
     )
     for i in tqdm(range(len(train_dataset))):
         g = train_dataset[i]
@@ -22,7 +31,7 @@ def main(config, target):
             pickle.dump(g, f)   
 
     valid_dataset = XRayDataset(
-        config, is_train=False
+        config, is_train=False, transforms=valid_aug
     )
 
     for i in tqdm(range(len(valid_dataset))):

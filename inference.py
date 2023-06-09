@@ -15,6 +15,7 @@ from torch.utils.data import Dataset, DataLoader
 from datasets.test_dataset import XRayInferenceDataset
 from runner.test_runner import test
 from utils import read_json
+import augmentations
 
 def main(config):
     # Load Model
@@ -24,7 +25,7 @@ def main(config):
     pngs = glob(os.path.join(config.test_image_dir, '*', '*.png'))
     
     # Augmentation
-    tf = A.Resize(config.input_size, config.input_size)
+    tf = getattr(augmentations, "base_augmentation")(config.input_size, mean=0.13189, std=0.17733)
     
     # Dataset
     test_dataset = XRayInferenceDataset(config, pngs, transforms=tf)
