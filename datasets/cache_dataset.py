@@ -1,4 +1,4 @@
-from torch.utils.data import Dataset
+import gzip
 import os
 import pickle
 import gzip
@@ -10,10 +10,12 @@ from albumentations import (
     Rotate,
 )
 
+from torch.utils.data import Dataset
+
 class CacheDataset(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
         super().__init__()
-        
+
         if is_train:
             self.datadir = config.train_cache_data_dir
             self._filename = [n for n in os.listdir(self.datadir) if n.endswith('pkl')]
@@ -23,8 +25,9 @@ class CacheDataset(Dataset):
 
         self.transforms = transforms
         
+
     def __getitem__(self, idx):
-        with gzip.open(os.path.join(self.datadir, self._filename[idx]), mode='rb') as f:
+        with gzip.open(os.path.join(self.datadir, self._filename[idx]), mode="rb") as f:
             p = pickle.load(f)
 
         if self.transforms is not None:
@@ -44,12 +47,10 @@ class CacheDataset(Dataset):
             return image, label            
 
         return p[0], p[1]
-    
+
     def __len__(self):
         return len(self._filename)
-
-    
-
+      
 if __name__ == "__main__":
     import time
     transforms = Compose(
@@ -73,3 +74,4 @@ if __name__ == "__main__":
     ed = time.time()
     print(image.shape, label.shape, f"time : {(ed-st) * 1000} ms")
     # torch.Size([3, 1024, 1024]) torch.Size([29, 1024, 1024]) time : 623.7030029296875 ms
+

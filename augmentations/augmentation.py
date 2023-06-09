@@ -58,3 +58,4 @@ def rotate_flip(resize, limit=30, norm=True, mean=0.13189, std=0.17733):
     if norm:
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1., p=1.0))
     return Compose(transforms)
+
