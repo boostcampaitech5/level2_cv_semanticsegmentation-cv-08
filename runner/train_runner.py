@@ -89,6 +89,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                     print(f"over {patience_limit}, Early Stopping....")
                     break
         ed = time.time()
+        torch.save(model, os.path.join(config.model_dir, "last.pt"))
         print(f"Epoch {epoch} : {(ed-st)} s")
 
 
