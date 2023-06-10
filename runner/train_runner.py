@@ -50,7 +50,9 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
             if config.fp16:
                 with torch.cuda.amp.autocast():
                     images, masks = images.cuda(), masks.cuda()
-                    outputs = model(images)["out"]
+                    outputs = model(images)
+                    if isinstance(outputs, collections.OrderedDict):
+                        outputs = outputs["out"]
                     loss = criterion(outputs, masks)
                 scaler.scale(loss).backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
