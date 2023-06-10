@@ -1,7 +1,6 @@
 # python native
 import argparse
 import os
-from glob import glob
 
 # external library
 import pandas as pd
