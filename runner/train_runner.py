@@ -23,7 +23,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
     model_name = config.smp.model if config.smp.use_smp else config.model
     print(
         f"Start training..\n"
-        f"model : {model_name}\n"
+        f"model : {model_name if not config.resume_from else config.resume_from}\n"
         f"epochs : {config.epochs}\n"
         f"batch size : {config.train_batch_size}\n"
         f"fp16 : {config.fp16}\n"
