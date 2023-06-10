@@ -107,7 +107,9 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
         for step, (images, masks) in tqdm(enumerate(data_loader), total=len(data_loader)):
             images, masks = images.cuda(), masks.cuda()
 
-            outputs = model(images)['out']
+            outputs = model(images)
+            if isinstance(outputs, collections.OrderedDict):
+                outputs = outputs['out']            
 
             output_h, output_w = outputs.size(-2), outputs.size(-1)
             mask_h, mask_w = masks.size(-2), masks.size(-1)
