@@ -10,7 +10,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 
-import augmentations
+from augmentations import augmentation
 
 # utils
 from datasets.test_dataset import XRayInferenceDataset
@@ -20,23 +20,20 @@ from utils import read_json
 
 def main(config):
     # Load Model
-    model = torch.load(os.path.join(config.save_model_dir, config.save_model_fname))
-
-    # Load Data
-    pngs = glob(os.path.join(config.test_image_dir, "*", "*.png"))
+    model = torch.load(os.path.normpath(config.inference_model_dir))
 
     # Augmentation
-    tf = getattr(augmentations, "base_augmentation")(config.input_size, mean=0.13189, std=0.17733)
+    tf = getattr(augmentation, "base_augmentation")(config.input_size, mean=0.13189, std=0.17733)
 
     # Dataset
-    test_dataset = XRayInferenceDataset(config, pngs, transforms=tf)
+    test_dataset = XRayInferenceDataset(config, transforms=tf)
 
     # Dataloader
     test_loader = DataLoader(
         dataset=test_dataset,
-        batch_size=config.batch_size,
+        batch_size=1,
         shuffle=False,
-        num_workers=8,
+        num_workers=2,
         drop_last=False,
     )
 
