@@ -31,15 +31,18 @@ def main(config):
             config=config,
         )
 
-    if config.smp.use_smp:
-        model = getattr(smp, config.smp.model)(
-            encoder_name=config.smp.encoder_name,
-            encoder_weights=config.smp.encoder_weights,
-            in_channels=3,
-            classes=config.num_classes,
-        )
+    if config.resume_from:
+        model = torch.load(config.resume_from)
     else:
-        model = getattr(models, config.model)(config.num_classes)
+        if config.smp.use_smp:
+            model = getattr(smp, config.smp.model)(
+                encoder_name=config.smp.encoder_name,
+                encoder_weights=config.smp.encoder_weights,
+                in_channels=3,
+                classes=config.num_classes,
+            )
+        else:
+            model = getattr(models, config.model)(config.num_classes)
     model.cuda()
 
     optimizer = partial(getattr(torch.optim, config.optimizer.type))

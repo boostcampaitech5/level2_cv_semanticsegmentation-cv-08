@@ -45,5 +45,6 @@
         "project": "level2_segmentation",
         "run_name": "test"
     },
+    "resume_from": false,
     "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/test/best.pt"
 }
