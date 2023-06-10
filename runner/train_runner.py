@@ -58,7 +58,9 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                     scaler.update()
             else:
                 images, masks = images.cuda(), masks.cuda()
-                outputs = model(images)['out']
+                outputs = model(images)
+                if isinstance(outputs, collections.OrderedDict):
+                    outputs = outputs['out']                    
                 loss = criterion(outputs, masks)
                 loss.backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
