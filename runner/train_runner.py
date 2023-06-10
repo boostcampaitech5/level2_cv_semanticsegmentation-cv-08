@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import collections
+
 # torch
 import torch
 import torch.nn.functional as F
@@ -61,6 +62,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                 outputs = model(images)
                 if isinstance(outputs, collections.OrderedDict):
                     outputs = outputs['out']
+
                 loss = criterion(outputs, masks)
                 loss.backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):

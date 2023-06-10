@@ -28,6 +28,7 @@ def test(config, model, data_loader, thr=0.5):
             if isinstance(outputs, collections.OrderedDict):
                 outputs = outputs['out']            
 
+
             # restore original size
             outputs = F.interpolate(outputs, size=(2048, 2048), mode="bilinear")
             outputs = torch.sigmoid(outputs)
