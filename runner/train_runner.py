@@ -1,9 +1,9 @@
 # python native
+import collections
 import datetime
 import os
 import sys
 import time
-import collections
 
 # torch
 import torch
@@ -24,7 +24,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
     model_name = config.smp.model if config.smp.use_smp else config.model
     print(
         f"Start training..\n"
-        f"model : {model_name}\n"
+        f"model : {model_name if not config.resume_from else config.resume_from}\n"
         f"epochs : {config.epochs}\n"
         f"batch size : {config.train_batch_size}\n"
         f"fp16 : {config.fp16}\n"
@@ -50,7 +50,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
             if config.fp16:
                 with torch.cuda.amp.autocast():
                     images, masks = images.cuda(), masks.cuda()
-                    outputs = model(images)['out']
+                    outputs = model(images)["out"]
                     loss = criterion(outputs, masks)
                 scaler.scale(loss).backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
@@ -61,7 +61,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                 images, masks = images.cuda(), masks.cuda()
                 outputs = model(images)
                 if isinstance(outputs, collections.OrderedDict):
-                    outputs = outputs['out']                    
+                    outputs = outputs["out"]
+
                 loss = criterion(outputs, masks)
                 loss.backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
@@ -92,6 +93,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                     print(f"over {patience_limit}, Early Stopping....")
                     break
         ed = time.time()
+        torch.save(model, os.path.join(config.model_dir, "last.pt"))
         print(f"Epoch {epoch} : {(ed-st)} s")
 
 
@@ -110,7 +112,7 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
 
             outputs = model(images)
             if isinstance(outputs, collections.OrderedDict):
-                outputs = outputs['out']            
+                outputs = outputs["out"]
 
             output_h, output_w = outputs.size(-2), outputs.size(-1)
             mask_h, mask_w = masks.size(-2), masks.size(-1)

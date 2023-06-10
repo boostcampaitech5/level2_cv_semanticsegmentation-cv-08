@@ -8,20 +8,21 @@
     },
     "image_root": "/opt/ml/data/train/DCM",
     "label_root": "/opt/ml/data/train/outputs_json",
-    "train_cache_data_dir": "/opt/ml/cache_data_256/train",
-    "valid_cache_data_dir": "/opt/ml/cache_data_256/valid",
+    "train_cache_data_dir": "/opt/ml/cache_data_1024_norm/train",
+    "valid_cache_data_dir": "/opt/ml/cache_data_1024_norm/valid",
     "test_image_root": "/opt/ml/data/test/DCM",
     "dataset": "CacheDataset",
-    "input_size": 512,
+    "input_size": 1024,
     "num_classes": 29,
     "loss": "BCEWithLogitsLoss",
-    "epochs": 2,
+    "epochs": 100,
     "train_batch_size": 2,
     "valid_batch_size": 8,
     "optimizer": {
         "type": "Adam",
         "parameters": {
-            "lr": 0.001
+            "lr": 0.00001,
+            "weight_decay": 1e-6
         }
     },
     "augmentations": {
@@ -30,7 +31,7 @@
             "resize": 2048
         }
     },
-    "model_dir": "./model_dir/test",
+    "model_dir": "./model_dir/Deeplabv3_resnet101_1024_resume_epoch85",
     "model_file_name": "best.pt",
     "seed": 42,
     "log_step": 20,
@@ -45,5 +46,6 @@
         "project": "level2_segmentation",
         "run_name": "test"
     },
+    "resume_from": "/opt/ml/input/code/Deeplabv3_resnet101_960/epoch85_0.9502_best.pt",
     "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/test/best.pt"
 }

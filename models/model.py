@@ -19,6 +19,7 @@ class fcn_resnet50(nn.Module):
         outputs = self.forward(image)
         return outputs
 
+
 class fcn_resnet101(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
@@ -34,7 +35,8 @@ class fcn_resnet101(nn.Module):
 
         outputs = self.forward(image)
         return outputs
-    
+
+
 class deeplabv3_resnet50(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
@@ -49,7 +51,8 @@ class deeplabv3_resnet50(nn.Module):
         image = image.to(self.device)
 
         outputs = self.forward(image)
-        return outputs        
+        return outputs
+
 
 class deeplabv3_resnet101(nn.Module):
     def __init__(self, num_classes):
@@ -66,7 +69,8 @@ class deeplabv3_resnet101(nn.Module):
 
         outputs = self.forward(image)
         return outputs
-    
+
+
 class fcn32(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
