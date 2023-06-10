@@ -15,7 +15,7 @@ class FocalLoss:
     def __call__(self, inputs, targets):
         inputs = inputs.view(-1)
         targets = targets.view(-1)
-        BCE = F.binary_cross_entropy_with_logits(inputs, targets, reduction='mean')
+        BCE = F.binary_cross_entropy_with_logits(inputs, targets, reduction="mean")
         BCE_EXP = torch.exp(-BCE)
         loss = self.alpha * (1 - BCE_EXP) ** self.gamma * BCE
         return loss
