@@ -9,7 +9,7 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 
-from augmentations import augmentation
+import augmentations
 
 # utils
 from datasets.test_dataset import XRayInferenceDataset
@@ -22,7 +22,7 @@ def main(config):
     model = torch.load(os.path.normpath(config.inference_model_dir))
 
     # Augmentation
-    tf = getattr(augmentation, "base_augmentation")(config.input_size, mean=0.13189, std=0.17733)
+    tf = getattr(augmentations, "base_augmentation")(config.input_size, mean=0.13189, std=0.17733)
 
     # Dataset
     test_dataset = XRayInferenceDataset(config, transforms=tf)
