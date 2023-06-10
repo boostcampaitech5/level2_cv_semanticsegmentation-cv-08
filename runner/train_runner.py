@@ -49,7 +49,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
             if config.fp16:
                 with torch.cuda.amp.autocast():
                     images, masks = images.cuda(), masks.cuda()
-                    outputs = model(images)
+                    outputs = model(images)['out']
                     loss = criterion(outputs, masks)
                 scaler.scale(loss).backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
@@ -58,7 +58,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                     scaler.update()
             else:
                 images, masks = images.cuda(), masks.cuda()
-                outputs = model(images)
+                outputs = model(images)['out']
                 loss = criterion(outputs, masks)
                 loss.backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
@@ -105,7 +105,7 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
         for step, (images, masks) in tqdm(enumerate(data_loader), total=len(data_loader)):
             images, masks = images.cuda(), masks.cuda()
 
-            outputs = model(images)
+            outputs = model(images)['out']
 
             output_h, output_w = outputs.size(-2), outputs.size(-1)
             mask_h, mask_w = masks.size(-2), masks.size(-1)
