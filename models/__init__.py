@@ -1,4 +1,4 @@
-from .model import fcn32, fcn_resnet50
+from .model import fcn32, fcn_resnet50, fcn_resnet101, deeplabv3_resnet101, deeplabv3_resnet50
 
 __all__ = [
     "fcn_resnet50",
