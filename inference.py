@@ -30,9 +30,9 @@ def main(config):
     # Dataloader
     test_loader = DataLoader(
         dataset=test_dataset,
-        batch_size=1,
+        batch_size=config.test_batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=config.test_num_workers,
         drop_last=False,
     )
 
