@@ -18,6 +18,7 @@
     "epochs": 10,
     "train_batch_size": 1,
     "valid_batch_size": 1,
+    "test_batch_size": 1,
     "optimizer": {
         "type": "Adam",
         "parameters": {
@@ -38,7 +39,6 @@
     "val_every": 1,
     "patience_limit": 10,
     "fp16": true,
-    "num_workers": 4,
     "accumulation_step": 1,
     "wandb": {
         "use_wandb": false,
@@ -47,5 +47,8 @@
         "run_name": "test"
     },
     "resume_from": false,
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/test/best.pt"
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/test/best.pt",
+    "train_num_workers": 4,
+    "valid_num_workers": 2,
+    "test_num_workers": 2
 }

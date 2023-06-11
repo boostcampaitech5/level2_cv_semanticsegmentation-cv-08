@@ -65,7 +65,7 @@ def main(config):
         dataset=train_dataset,
         batch_size=config.train_batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=config.train_num_workers,
         drop_last=True,
     )
 
@@ -74,7 +74,7 @@ def main(config):
         dataset=valid_dataset,
         batch_size=config.valid_batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=config.valid_num_workers,
         drop_last=False,
     )
     train(config, model, train_loader, valid_loader, criterion, optimizer)
