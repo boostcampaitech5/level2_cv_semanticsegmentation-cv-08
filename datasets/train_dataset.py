@@ -205,8 +205,13 @@ class XRayDatasetFast(Dataset):
         label_path = os.path.join(self.config["label_root"], label_name)
 
         # process a label of shape (H, W, NC)
+        
         with open(label_path, 'rb') as f:
-            label = np.load(f)
+            label_np = np.load(f)
+            if isinstance(label_np, np.lib.npyio.NpzFile):
+                label = np.load(f)['arr_0']
+            else:
+                label = label_np
         label = np.unpackbits(label).reshape(2048, 2048, 29)
 
         if self.transforms is not None:

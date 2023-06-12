@@ -15,7 +15,12 @@ from datasets import XRayDataset
 from utils import read_json
 
 
-def main(target):
+def main(args):
+    target = args.target
+    np_mode = args.mode
+    
+    if np_mode not in ["npz", "npy"]:
+        raise ValueError(f'{np_mode} is not supported. Only "npz", "npy" can be used.')
     LABEL_ROOT = os.path.join(target, "train/outputs_json")
     CLASSES = [
         'finger-1', 'finger-2', 'finger-3', 'finger-4', 'finger-5',
@@ -69,7 +74,10 @@ def main(target):
         label = np.packbits(label.astype(bool), axis=None)
         
         with open(os.path.join(LABEL_ROOT, changed_label), 'wb') as f:
-            np.save(f, label)
+            if np_mode == "npy":
+                np.save(f, label)
+            elif np_mode == "npz":
+                np.savez_compressed(f, label)
 
 
 if __name__ == "__main__":
@@ -79,5 +87,12 @@ if __name__ == "__main__":
         type=str,
         help="target dataset root directory",
     )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        type=str,
+        default="npz",
+        help='numpy conversion mode. "npy" to save as uncompressed numpy array, "npz" to save as compressed numpy array(default: "npz")'
+    )
     args = parser.parse_args()
-    main(args.target)
+    main(args)
