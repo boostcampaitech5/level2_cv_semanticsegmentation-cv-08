@@ -49,16 +49,12 @@ def main(config):
     optimizer = optimizer(model.parameters(), **config.optimizer.parameters)
     criterion = getattr(loss, config.loss)()
 
-    if config.augmentations and config.dataset != "CacheDataset":
-        train_aug = getattr(augmentations, config.augmentations.name)(
-            **config.augmentations.parameters
-        )
-        valid_aug = getattr(augmentations, "base_augmentation")(
-            config.augmentations.parameters.resize, mean=0.13189, std=0.17733
-        )
-    else:  # config.augmentation이 false일 경우 기본 데이터셋이면 config.input_size에 맞게 resize, pickle 데이터셋으면 변환없이 그대로 입력
-        train_aug = None
-        valid_aug = None
+    train_aug = getattr(augmentations, config.train_augmentations.name)(
+        **config.train_augmentations.parameters
+    )
+    valid_aug = getattr(augmentations, config.valid_augmentations.name)(
+        **config.valid_augmentations.parameters
+    )
 
     train_dataset = getattr(datasets, config.dataset)(config, is_train=True, transforms=train_aug)
     train_loader = DataLoader(
