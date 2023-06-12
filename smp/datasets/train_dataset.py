@@ -1,6 +1,6 @@
 # python native
-import os
 import json
+import os
 from glob import glob
 
 # external library
@@ -19,7 +19,7 @@ from utils.util import CLASS2IND, CLASSES
 class XRayDataset(Dataset):
     def __init__(self, args, is_train=True, transforms=None):
         self.args = args
-        
+
         # Load Data
         pngs = glob(os.path.join(args.image_dir, "*", "*.png"))
         jsons = glob(os.path.join(args.label_dir, "*", "*.json"))

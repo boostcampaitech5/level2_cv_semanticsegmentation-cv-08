@@ -2,38 +2,39 @@
 import os
 from argparse import ArgumentParser
 
+import albumentations as A
+import segmentation_models_pytorch as smp
+
 # torch
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 
 # external library
 import wandb
 import yaml
-import albumentations as A
-import segmentation_models_pytorch as smp
+from torch.utils.data import DataLoader
 
 # utils
 from datasets.train_dataset import XRayDataset
 from runner.train_runner import train
-from utils.util import AttributeDict, set_seed, check_directory, CLASSES
+from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
 def main(args):
     # Augmentation
-    train_tf = A.Compose([
-        A.Resize(512, 512),
-        # A.HorizontalFlip(p=0.5),
-    ])
-    valid_tf = A.Compose([
-        A.Resize(512, 512)
-    ])
-    
+    train_tf = A.Compose(
+        [
+            A.Resize(512, 512),
+            # A.HorizontalFlip(p=0.5),
+        ]
+    )
+    valid_tf = A.Compose([A.Resize(512, 512)])
+
     # Dataset
     train_dataset = XRayDataset(args, is_train=True, transforms=train_tf)
     valid_dataset = XRayDataset(args, is_train=False, transforms=valid_tf)
-    
+
     # Dataloader
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -43,11 +44,7 @@ def main(args):
         drop_last=True,
     )
     valid_loader = DataLoader(
-        dataset=valid_dataset, 
-        batch_size=2,
-        shuffle=False,
-        num_workers=2,
-        drop_last=False
+        dataset=valid_dataset, batch_size=2, shuffle=False, num_workers=2, drop_last=False
     )
 
     # Model Define
@@ -103,12 +100,12 @@ if __name__ == "__main__":
     # check save model dir
     args.inference = False
     args = check_directory(args)
-    
+
     # wandb
     wandb.init(
         entity="kgw5430",
         project="semantic-segmentation",
-        name=f'{args.model}_{args.encoder_name}_{args.model_info}',
+        name=f"{args.model}_{args.encoder_name}_{args.model_info}",
         config=args,
     )
 

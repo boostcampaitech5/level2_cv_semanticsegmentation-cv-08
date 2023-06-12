@@ -8,7 +8,6 @@ import torch.nn.functional as F
 
 # external library
 import wandb
-from tqdm.auto import tqdm
 
 # utils
 from utils.util import CLASSES, dice_coef, set_seed
@@ -77,7 +76,7 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}"
                 )
-            wandb.log({'train/loss': loss.item()})
+            wandb.log({"train/loss": loss.item()})
 
         # validation 주기에 따른 loss 출력 및 best model 저장
         if (epoch + 1) % args.val_every == 0:
@@ -89,11 +88,12 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                 best_dice = dice
                 patience = 0
                 torch.save(model, os.path.join(args.save_model_dir, args.save_model_fname))
-            elif dice > 0.1: # 상승하기 시작하면 count
+            elif dice > 0.1:  # 상승하기 시작하면 count
                 patience += 1
-                if patience >= patience_limit: break
-                            
-        wandb.log({'epoch': epoch})
+                if patience >= patience_limit:
+                    break
+
+        wandb.log({"epoch": epoch})
 
 
 def valid(args, epoch, model, data_loader, criterion, thr=0.5):
@@ -129,23 +129,25 @@ def valid(args, epoch, model, data_loader, criterion, thr=0.5):
 
             dice = dice_coef(outputs, masks)
             dices.append(dice)
-            
+
             # step 주기에 따른 loss 출력
-            if (step + 1) % (args.log_step//2) == 0:
+            if (step + 1) % (args.log_step // 2) == 0:
                 print(
                     f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | '
                     f"Epoch [{epoch+1}/{args.epochs}], "
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}, ",
-                    f"Dice: {round(torch.mean(dice).item(), 6)}"
+                    f"Dice: {round(torch.mean(dice).item(), 6)}",
                 )
             wandb.log({"valid/loss": loss.item()})
 
     dices = torch.cat(dices, 0)
     dices_per_class = torch.mean(dices, 0)
     for idx, (c, d) in enumerate(zip(CLASSES, dices_per_class)):
-        if (idx+1)%5==0: print(f"{c:<12}: {d.item():.6f}", end="\n")
-        else: print(f"{c:<12}: {d.item():.6f} | ", end="")
+        if (idx + 1) % 5 == 0:
+            print(f"{c:<12}: {d.item():.6f}", end="\n")
+        else:
+            print(f"{c:<12}: {d.item():.6f} | ", end="")
 
     avg_dice = torch.mean(dices_per_class).item()
 
