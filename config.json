@@ -8,6 +8,8 @@
     },
     "image_root": "/opt/ml/data/train/DCM",
     "label_root": "/opt/ml/data/train/outputs_json",
+    "train_json_path": "/opt/ml/data/train_split.json",
+    "valid_json_path": "/opt/ml/data/valid_split.json",
     "train_cache_data_dir": "/opt/ml/cache_data_512_norm/train",
     "valid_cache_data_dir": "/opt/ml/cache_data_512_norm/valid",
     "test_image_root": "/opt/ml/data/test/DCM",
