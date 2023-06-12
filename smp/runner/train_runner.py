@@ -17,7 +17,6 @@ from utils.util import CLASSES, dice_coef, set_seed
 def train(args, model, data_loader, val_loader, criterion, optimizer):
     print(f"Start training..")
     set_seed(args.seed)
-    len(CLASSES)
 
     # Early Stop
     best_dice = 0.0
@@ -29,11 +28,11 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
         model.train()
 
         # Creates a GradScaler once at the beginning of training.
-        if args.f16:
+        if args.fp16:
             scaler = torch.cuda.amp.GradScaler()
 
         for step, (images, masks) in enumerate(data_loader):
-            if args.f16:
+            if args.fp16:
                 # Casts operations to mixed precision
                 with torch.cuda.amp.autocast():
                     # gpu 연산을 위해 device 할당
@@ -78,24 +77,23 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}"
                 )
+            wandb.log({'train/loss': loss.item()})
 
-            wandb.log({"train/loss": loss.item()})
         # validation 주기에 따른 loss 출력 및 best model 저장
         if (epoch + 1) % args.val_every == 0:
             dice = valid(args, epoch + 1, model, val_loader, criterion)
 
-            if best_dice <= dice:
-                print(f"Best performance at epoch: {epoch + 1}, {best_dice:.6f} -> {dice:.6f}")
+            if best_dice < dice:
+                print(f"\nBest performance at epoch: {epoch + 1}, {best_dice:.6f} -> {dice:.6f}")
                 print(f"Save model in {args.save_model_dir}")
                 best_dice = dice
                 patience = 0
                 torch.save(model, os.path.join(args.save_model_dir, args.save_model_fname))
-            else:
+            elif dice > 0.1: # 상승하기 시작하면 count
                 patience += 1
-                if patience >= patience_limit:
-                    break
-
-        wandb.log({"epoch": epoch})
+                if patience >= patience_limit: break
+                            
+        wandb.log({'epoch': epoch})
 
 
 def valid(args, epoch, model, data_loader, criterion, thr=0.5):
@@ -105,11 +103,10 @@ def valid(args, epoch, model, data_loader, criterion, thr=0.5):
 
     dices = []
     with torch.no_grad():
-        len(CLASSES)
         total_loss = 0
         cnt = 0
 
-        for step, (images, masks) in tqdm(enumerate(data_loader), total=len(data_loader)):
+        for step, (images, masks) in enumerate(data_loader):
             images, masks = images.cuda(), masks.cuda()
             model = model.cuda()
 
@@ -127,19 +124,28 @@ def valid(args, epoch, model, data_loader, criterion, thr=0.5):
             cnt += 1
 
             outputs = torch.sigmoid(outputs)
-            outputs = (outputs > thr).detach().cpu()
-            masks = masks.detach().cpu()
+            outputs = (outputs > thr).detach()
+            masks = masks.detach()
 
             dice = dice_coef(outputs, masks)
             dices.append(dice)
-
+            
+            # step 주기에 따른 loss 출력
+            if (step + 1) % (args.log_step//2) == 0:
+                print(
+                    f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | '
+                    f"Epoch [{epoch+1}/{args.epochs}], "
+                    f"Step [{step+1}/{len(data_loader)}], "
+                    f"Loss: {round(loss.item(),6)}, ",
+                    f"Dice: {round(torch.mean(dice).item(), 6)}"
+                )
             wandb.log({"valid/loss": loss.item()})
 
     dices = torch.cat(dices, 0)
     dices_per_class = torch.mean(dices, 0)
-    dice_str = [f"{c:<12}: {d.item():.6f}" for c, d in zip(CLASSES, dices_per_class)]
-    dice_str = "\n".join(dice_str)
-    print(dice_str)
+    for idx, (c, d) in enumerate(zip(CLASSES, dices_per_class)):
+        if (idx+1)%5==0: print(f"{c:<12}: {d.item():.6f}", end="\n")
+        else: print(f"{c:<12}: {d.item():.6f} | ", end="")
 
     avg_dice = torch.mean(dices_per_class).item()
 

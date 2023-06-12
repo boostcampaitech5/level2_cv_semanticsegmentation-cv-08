@@ -1,48 +1,39 @@
 # python native
 import os
 from argparse import ArgumentParser
-from glob import glob
-
-import albumentations as A
-import segmentation_models_pytorch as smp
 
 # torch
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader
 
 # external library
 import wandb
 import yaml
-from torch.utils.data import DataLoader
+import albumentations as A
+import segmentation_models_pytorch as smp
 
 # utils
 from datasets.train_dataset import XRayDataset
 from runner.train_runner import train
-from utils.util import CLASSES, AttributeDict, set_seed
+from utils.util import AttributeDict, set_seed, check_directory, CLASSES
 
 
 def main(args):
-    # Load Data
-    pngs = glob(os.path.join(args.image_dir, "*", "*.png"))
-    jsons = glob(os.path.join(args.label_dir, "*", "*.json"))
-
-    jsons_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in jsons}
-    pngs_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in pngs}
-
-    assert len(jsons_fn_prefix - pngs_fn_prefix) == 0
-    assert len(pngs_fn_prefix - jsons_fn_prefix) == 0
-
-    pngs = sorted(pngs)
-    jsons = sorted(jsons)
-
     # Augmentation
-    tf = A.Resize(512, 512)
-
+    train_tf = A.Compose([
+        A.Resize(512, 512),
+        # A.HorizontalFlip(p=0.5),
+    ])
+    valid_tf = A.Compose([
+        A.Resize(512, 512)
+    ])
+    
     # Dataset
-    train_dataset = XRayDataset(args, pngs, jsons, is_train=True, transforms=tf)
-    valid_dataset = XRayDataset(args, pngs, jsons, is_train=False, transforms=tf)
-
+    train_dataset = XRayDataset(args, is_train=True, transforms=train_tf)
+    valid_dataset = XRayDataset(args, is_train=False, transforms=valid_tf)
+    
     # Dataloader
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -52,7 +43,11 @@ def main(args):
         drop_last=True,
     )
     valid_loader = DataLoader(
-        dataset=valid_dataset, batch_size=8, shuffle=False, num_workers=0, drop_last=False
+        dataset=valid_dataset, 
+        batch_size=2,
+        shuffle=False,
+        num_workers=2,
+        drop_last=False
     )
 
     # Model Define
@@ -106,13 +101,14 @@ if __name__ == "__main__":
     set_seed(args.seed)
 
     # check save model dir
-    os.makedirs(args.save_model_dir, exist_ok=True)
-
+    args.inference = False
+    args = check_directory(args)
+    
     # wandb
     wandb.init(
         entity="kgw5430",
         project="semantic-segmentation",
-        name=f"{args.model}_{args.encoder_name}",
+        name=f'{args.model}_{args.encoder_name}_{args.model_info}',
         config=args,
     )
 

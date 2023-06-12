@@ -1,7 +1,9 @@
+import os
+import torch
 import random
 
 import numpy as np
-import torch
+from glob import glob
 
 # define classes
 # fmt: off
@@ -34,7 +36,6 @@ class AttributeDict(dict):
     """
     Can dot(.) access to members of dictionary.
     """
-
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
@@ -48,6 +49,30 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
     random.seed(seed)
+    
+def check_directory(args):
+    _dir = os.path.join(args.save_model_dir, f'{args.model}_{args.encoder_name}_{args.model_info}')
+    num_dir = len(glob(f'{_dir}*'))
+    now_dir = f'{_dir}_{num_dir}'
+    
+    if args.inference or (os.path.isdir(now_dir) and args.train_continue==True):
+        now_dir = f'{_dir}_{num_dir-1}'
+    else:
+        if os.path.isdir(_dir) and args.train_continue==False:
+            now_dir = f'{_dir}_{num_dir+1}'
+            os.makedirs(now_dir)
+        else:
+            now_dir = f'{_dir}_{num_dir}'
+            os.makedirs(now_dir)
+    
+    args.save_model_dir = now_dir
+    args.save_model_fname = f'{args.model}_{args.encoder_name}_best.pt'
+    args.save_submit_dir = now_dir
+    args.save_submit_fname = f'{args.model}_{args.encoder_name}_best.csv'
+
+    print(f'save model directory : {now_dir}')
+    
+    return args
 
 
 def dice_coef(y_true, y_pred):
@@ -56,7 +81,7 @@ def dice_coef(y_true, y_pred):
     intersection = torch.sum(y_true_f * y_pred_f, -1)
 
     eps = 0.0001
-    return (2.0 * intersection + eps) / (torch.sum(y_true_f, -1) + torch.sum(y_pred_f, -1) + eps)
+    return ((2.0 * intersection + eps) / (torch.sum(y_true_f, -1) + torch.sum(y_pred_f, -1) + eps)).cpu()
 
 
 # utility function
