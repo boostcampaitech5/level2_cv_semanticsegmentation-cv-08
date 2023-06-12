@@ -6,4 +6,4 @@ CSVs/
 __pycache__/
 test.py/
 *.ipynb/
-nohup.out/
+nohup.out
