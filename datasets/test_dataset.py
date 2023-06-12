@@ -1,8 +1,6 @@
 # python native
 import os
 
-import albumentations as A
-
 # external library
 import cv2
 import numpy as np
