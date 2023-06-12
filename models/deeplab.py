@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+
 class deeplabv3_resnet50(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
