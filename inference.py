@@ -12,8 +12,8 @@ from torch.utils.data import DataLoader
 import augmentations
 
 # utils
-from datasets.test_dataset import XRayInferenceDataset
-from runner.test_runner import test
+from datasets import XRayInferenceDataset
+from runner import test
 from utils import read_json
 
 
@@ -22,7 +22,7 @@ def main(config):
     model = torch.load(os.path.normpath(config.inference_model_dir))
 
     # Augmentation
-    tf = getattr(augmentations, "base_augmentation")(config.input_size, mean=0.13189, std=0.17733)
+    tf = getattr(augmentations, config.test_augmentations.name)(**config.test_augmentations.parameters)
 
     # Dataset
     test_dataset = XRayInferenceDataset(config, transforms=tf)
