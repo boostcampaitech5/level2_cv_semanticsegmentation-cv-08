@@ -1,8 +1,6 @@
 import argparse
-import gzip
 import json
 import os
-import pickle
 import sys
 
 import cv2
@@ -10,28 +8,48 @@ import numpy as np
 from tqdm import tqdm
 
 sys.path.append("..")
-import augmentations
-from datasets import XRayDataset
-from utils import read_json
 
 
 def main(args):
     target = args.target
     np_mode = args.mode
-    
+
     if np_mode not in ["npz", "npy"]:
         raise ValueError(f'{np_mode} is not supported. Only "npz", "npy" can be used.')
     LABEL_ROOT = os.path.join(target, "train/outputs_json")
     CLASSES = [
-        'finger-1', 'finger-2', 'finger-3', 'finger-4', 'finger-5',
-        'finger-6', 'finger-7', 'finger-8', 'finger-9', 'finger-10',
-        'finger-11', 'finger-12', 'finger-13', 'finger-14', 'finger-15',
-        'finger-16', 'finger-17', 'finger-18', 'finger-19', 'Trapezium',
-        'Trapezoid', 'Capitate', 'Hamate', 'Scaphoid', 'Lunate',
-        'Triquetrum', 'Pisiform', 'Radius', 'Ulna',
+        "finger-1",
+        "finger-2",
+        "finger-3",
+        "finger-4",
+        "finger-5",
+        "finger-6",
+        "finger-7",
+        "finger-8",
+        "finger-9",
+        "finger-10",
+        "finger-11",
+        "finger-12",
+        "finger-13",
+        "finger-14",
+        "finger-15",
+        "finger-16",
+        "finger-17",
+        "finger-18",
+        "finger-19",
+        "Trapezium",
+        "Trapezoid",
+        "Capitate",
+        "Hamate",
+        "Scaphoid",
+        "Lunate",
+        "Triquetrum",
+        "Pisiform",
+        "Radius",
+        "Ulna",
     ]
     CLASS2IND = {v: i for i, v in enumerate(CLASSES)}
-    
+
     jsons = {
         os.path.relpath(os.path.join(root, fname), start=LABEL_ROOT)
         for root, _dirs, files in os.walk(LABEL_ROOT)
@@ -39,11 +57,11 @@ def main(args):
         if os.path.splitext(fname)[1].lower() == ".json"
     }
     jsons = sorted(jsons)
-    
+
     labelnames = np.array(jsons)
-    
+
     print("Converting json label into numpy mask array. This may take a while...")
-    
+
     for label_name in tqdm(labelnames):
         label_path = os.path.join(LABEL_ROOT, label_name)
 
@@ -66,14 +84,14 @@ def main(args):
 
             cv2.fillPoly(class_label, [points], 1)
             label[..., class_ind] = class_label
-            
-        changed_label = label_name.split('.')
+
+        changed_label = label_name.split(".")
         changed_label[-1] = "npy"
         changed_label = ".".join(changed_label)
-        
+
         label = np.packbits(label.astype(bool), axis=None)
-        
-        with open(os.path.join(LABEL_ROOT, changed_label), 'wb') as f:
+
+        with open(os.path.join(LABEL_ROOT, changed_label), "wb") as f:
             if np_mode == "npy":
                 np.save(f, label)
             elif np_mode == "npz":
@@ -92,7 +110,7 @@ if __name__ == "__main__":
         "--mode",
         type=str,
         default="npz",
-        help='numpy conversion mode. "npy" to save as uncompressed numpy array, "npz" to save as compressed numpy array(default: "npz")'
+        help='numpy conversion mode. "npy" to save as uncompressed numpy array, "npz" to save as compressed numpy array(default: "npz")',
     )
     args = parser.parse_args()
     main(args)

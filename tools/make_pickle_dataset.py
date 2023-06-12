@@ -1,8 +1,8 @@
 import argparse
 import gzip
 import os
-import sys
 import pickle
+import sys
 
 from tqdm import tqdm
 
@@ -44,7 +44,11 @@ def main(config, target):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c", "--config", default="../config.json", type=str, help="config file path (default: None)"
+        "-c",
+        "--config",
+        default="../config.json",
+        type=str,
+        help="config file path (default: None)",
     )
     parser.add_argument(
         "-t",
