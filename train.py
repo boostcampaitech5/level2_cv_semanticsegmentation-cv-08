@@ -119,7 +119,7 @@ def main(config):
                 # save model section
                 torch.save(model, os.path.join(config['model_dir'], config['model_file_name']))
                 
-if __name__=="__main__":
+if __name__=="__main__":    
     args = argparse.ArgumentParser()
     args.add_argument('-c', '--config', default='./config.json', type=str,
                     help='config file path (default: None)')

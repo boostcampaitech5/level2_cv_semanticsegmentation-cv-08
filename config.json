@@ -1,5 +1,6 @@
 {
-    "model": "fcn_resnet50",
+    "model": "DeconvNet",
+    "model_file_name": "fifth.pt",
     "image_root": "/opt/ml/input/code/train/DCM",
     "label_root": "/opt/ml/input/code/train/outputs_json",
     "train_cache_data_dir": "/opt/ml/input/code/train_cache",
@@ -25,6 +26,5 @@
         ]
     },
     "model_dir": "./model_dir",
-    "model_file_name": "best.pt",
-    "seed" : 42
+    "seed": 42
 }

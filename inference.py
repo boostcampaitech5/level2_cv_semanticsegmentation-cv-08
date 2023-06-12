@@ -80,7 +80,7 @@ def main(config):
         "class": classes,
         "rle": rles,
     })
-    df.to_csv("./CSVs/output.csv", index=False)
+    df.to_csv("./CSVs/fifth.csv", index=False)
     
 if __name__=="__main__":
     args = argparse.ArgumentParser()
