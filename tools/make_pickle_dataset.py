@@ -1,10 +1,12 @@
 import argparse
 import gzip
 import os
+import sys
 import pickle
 
 from tqdm import tqdm
 
+sys.path.append("..")
 import augmentations
 from datasets import XRayDataset
 from utils import read_json
@@ -47,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-t",
         "--target",
-        default="/opt/ml/cache_data",
+        default="/opt/ml/input/data_cache",
         type=str,
         help="cache dataset root directory",
     )
