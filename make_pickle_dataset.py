@@ -22,7 +22,7 @@ def main(config, target):
     )
     valid_aug = getattr(augmentations, config.valid_augmentations.name)(
         **config.valid_augmentations.parameters
-        )
+    )
 
     train_dataset = XRayDataset(config, transforms=train_aug)
 

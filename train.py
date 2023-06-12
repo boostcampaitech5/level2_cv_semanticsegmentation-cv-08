@@ -54,7 +54,7 @@ def main(config):
     )
     valid_aug = getattr(augmentations, config.valid_augmentations.name)(
         **config.valid_augmentations.parameters
-        )
+    )
 
     train_dataset = getattr(datasets, config.dataset)(config, is_train=True, transforms=train_aug)
     train_loader = DataLoader(

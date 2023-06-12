@@ -15,7 +15,7 @@ def horizontal_flip(resize, norm=False, mean=0.12397208368416988, std=0.16831689
     return Compose(transforms)
 
 
-def rotate(resize, limit=30, norm=False,mean=0.12397208368416988, std=0.16831689773326278):
+def rotate(resize, limit=30, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
     transforms = [Rotate(limit=limit), Resize(resize, resize, p=1)]
     if norm:
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))

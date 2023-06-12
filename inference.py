@@ -22,7 +22,9 @@ def main(config):
     model = torch.load(os.path.normpath(config.inference_model_dir))
 
     # Augmentation
-    tf = getattr(augmentations, config.test_augmentations.name)(**config.test_augmentations.parameters)
+    tf = getattr(augmentations, config.test_augmentations.name)(
+        **config.test_augmentations.parameters
+    )
 
     # Dataset
     test_dataset = XRayInferenceDataset(config, transforms=tf)
