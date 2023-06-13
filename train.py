@@ -50,7 +50,7 @@ def main(config):
     criterion = getattr(loss, config.loss)()
     lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
         optimizer,
-        **config.scheduler.parameteres
+        **config.scheduler.parameters
     )
 
     train_aug = getattr(augmentations, config.train_augmentations.name)(
