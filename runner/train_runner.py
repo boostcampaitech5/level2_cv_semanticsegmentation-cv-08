@@ -143,7 +143,8 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
 
     dices = torch.cat(dices, 0)
     dices_per_class = torch.mean(dices, 0)
-    wandb.log({c : d.item() for c, d in zip(CLASSES, dices_per_class)})    
+    if config.wandb.use_wandb:
+        wandb.log({c : d.item() for c, d in zip(CLASSES, dices_per_class)})    
     dice_str = [f"{c:<12}: {d.item():.6f}" for c, d in zip(CLASSES, dices_per_class)]
     dice_str = "\n".join(dice_str)
     print(dice_str)
