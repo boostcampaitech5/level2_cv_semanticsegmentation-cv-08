@@ -1,40 +1,40 @@
 {
-    "model": "deconvnet",
+    "model": "fcn_resnet50",
     "smp": {
-        "use_smp": false,
-        "model": "DeepLabV3Plus",
-        "encoder_name": "efficientnet-b0",
-        "encoder_weights": "imagenet"
+        "use_smp": true,
+        "model": "UnetPlusPlus",
+        "encoder_name": "resnext50_32x4d",
+        "encoder_weights": "swsl"
     },
     "image_root": "/opt/ml/data/train/DCM",
     "label_root": "/opt/ml/data/train/outputs_json",
     "train_cache_data_dir": "/opt/ml/cache_data_512/train",
     "valid_cache_data_dir": "/opt/ml/cache_data_512/valid",
     "test_image_root": "/opt/ml/data/test",
-    "dataset": "CacheDataset",
+    "dataset": "XRayDatasetFast",
     "num_classes": 29,
-    "loss": "BCEWithLogitsLoss",
+    "loss": "BCEDiceLoss",
     "epochs": 100,
-    "train_batch_size": 8,
-    "valid_batch_size": 4,
+    "train_batch_size": 1,
+    "valid_batch_size": 1,
     "test_batch_size": 1,
     "optimizer": {
         "type": "Adam",
         "parameters": {
             "lr": 0.0001,
-            "weight_decay": 1e-6
+            "weight_decay": 1e-06
         }
     },
     "train_augmentations": {
-        "name": "base_augmentation",
+        "name": "horizontal_flip",
         "parameters": {
-            "resize": 512
+            "resize": 1920
         }
     },
     "valid_augmentations": {
         "name": "base_augmentation",
         "parameters": {
-            "resize": 512
+            "resize": 1920
         }
     },
     "test_augmentations": {
@@ -43,23 +43,24 @@
             "resize": 512
         }
     },
-    "model_dir": "./model_dir/test",
+    "model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet++_resnext50_1920_BCEDICE_Flip",
     "model_file_name": "best.pt",
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
-    "patience_limit": 20,
+    "patience_limit": 10,
+    "scheduler_patience": 5,
     "fp16": false,
-    "accumulation_step": 1,
+    "accumulation_step": 8,
     "wandb": {
-        "use_wandb": false,
+        "use_wandb": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "test"
+        "run_name": "unet++_resnext50_1920_BCEDICE_Flip"
     },
     "resume_from": false,
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/deeplabv3_resnet50_512/best.pt",
-    "train_num_workers": 4,
-    "valid_num_workers": 2,
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/deeplabv3_resnet50_512/best_94-epoch_0.945642.pt",
+    "train_num_workers": 1,
+    "valid_num_workers": 1,
     "test_num_workers": 2
 }

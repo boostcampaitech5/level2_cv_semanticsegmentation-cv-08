@@ -20,7 +20,7 @@ from loss import dice_coef
 from utils import CLASSES, set_seed
 
 
-def train(config, model, data_loader, val_loader, criterion, optimizer):
+def train(config, model, data_loader, val_loader, criterion, optimizer, lr_scheduler):
     model_name = config.smp.model if config.smp.use_smp else config.model
     print(
         f"Start training..\n"
@@ -83,6 +83,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
                     wandb.log({"train/loss": loss.item()})
         if (epoch + 1) % config.val_every == 0:
             dice = valid(config, epoch + 1, model, val_loader, criterion)
+            lr_scheduler.step(dice)
 
             if best_dice <= dice:
                 print(f"Best performance at epoch: {epoch + 1}, {best_dice:.6f} -> {dice:.6f}")
@@ -139,6 +140,7 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
 
     dices = torch.cat(dices, 0)
     dices_per_class = torch.mean(dices, 0)
+    wandb.log({c : d.item() for c, d in zip(CLASSES, dices_per_class)})    
     dice_str = [f"{c:<12}: {d.item():.6f}" for c, d in zip(CLASSES, dices_per_class)]
     dice_str = "\n".join(dice_str)
     print(dice_str)
