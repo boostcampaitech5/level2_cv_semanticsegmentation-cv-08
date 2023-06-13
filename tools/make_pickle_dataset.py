@@ -2,9 +2,11 @@ import argparse
 import gzip
 import os
 import pickle
+import sys
 
 from tqdm import tqdm
 
+sys.path.append("..")
 import augmentations
 from datasets import XRayDataset
 from utils import read_json
@@ -42,12 +44,16 @@ def main(config, target):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c", "--config", default="./config.json", type=str, help="config file path (default: None)"
+        "-c",
+        "--config",
+        default="../config.json",
+        type=str,
+        help="config file path (default: None)",
     )
     parser.add_argument(
         "-t",
         "--target",
-        default="/opt/ml/cache_data",
+        default="/opt/ml/input/data_cache",
         type=str,
         help="cache dataset root directory",
     )
