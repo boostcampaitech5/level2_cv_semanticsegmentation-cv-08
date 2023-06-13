@@ -1,4 +1,6 @@
+import os
 import random
+from glob import glob
 
 import numpy as np
 import torch
@@ -50,13 +52,40 @@ def set_seed(seed):
     random.seed(seed)
 
 
+def check_directory(args):
+    _dir = os.path.join(args.save_model_dir, f"{args.model}_{args.encoder_name}_{args.model_info}")
+    num_dir = len(glob(f"{_dir}*"))
+    now_dir = f"{_dir}_{num_dir}"
+
+    if args.inference or (os.path.isdir(now_dir) and args.train_continue == True):
+        now_dir = f"{_dir}_{num_dir-1}"
+    else:
+        if os.path.isdir(_dir) and args.train_continue == False:
+            now_dir = f"{_dir}_{num_dir+1}"
+            os.makedirs(now_dir)
+        else:
+            now_dir = f"{_dir}_{num_dir}"
+            os.makedirs(now_dir)
+
+    args.save_model_dir = now_dir
+    args.save_model_fname = f"{args.model}_{args.encoder_name}_best.pt"
+    args.save_submit_dir = now_dir
+    args.save_submit_fname = f"{args.model}_{args.encoder_name}_best.csv"
+
+    print(f"save model directory : {now_dir}")
+
+    return args
+
+
 def dice_coef(y_true, y_pred):
     y_true_f = y_true.flatten(2)
     y_pred_f = y_pred.flatten(2)
     intersection = torch.sum(y_true_f * y_pred_f, -1)
 
     eps = 0.0001
-    return (2.0 * intersection + eps) / (torch.sum(y_true_f, -1) + torch.sum(y_pred_f, -1) + eps)
+    return (
+        (2.0 * intersection + eps) / (torch.sum(y_true_f, -1) + torch.sum(y_pred_f, -1) + eps)
+    ).cpu()
 
 
 # utility function

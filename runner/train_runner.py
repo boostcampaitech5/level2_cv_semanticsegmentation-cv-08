@@ -26,6 +26,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer):
         f"Start training..\n"
         f"model : {model_name if not config.resume_from else config.resume_from}\n"
         f"epochs : {config.epochs}\n"
+        f"loss : {config.loss}\n"
         f"batch size : {config.train_batch_size}\n"
         f"fp16 : {config.fp16}\n"
         f"Gradient Accumulation Step : {config.accumulation_step}\n",
@@ -127,8 +128,8 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
             cnt += 1
 
             outputs = torch.sigmoid(outputs)
-            outputs = (outputs > thr).detach().cpu()
-            masks = masks.detach().cpu()
+            outputs = (outputs > thr).detach()
+            masks = masks.detach()
 
             dice = dice_coef(outputs, masks)
             dices.append(dice)

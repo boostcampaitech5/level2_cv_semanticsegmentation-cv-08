@@ -2,30 +2,26 @@
 image_dir: "/opt/ml/input/data/train/DCM"
 label_dir: "/opt/ml/input/data/train/outputs_json"
 test_image_dir: "/opt/ml/input/data/test/DCM"
-
-save_model_dir: "/opt/ml/input/results/deeplabv3p_efficientb0"
-save_model_fname: "deeplabv3p_efficientb0_best_model.pt"
-
-save_submit_dir: "/opt/ml/input/results/deeplabv3p_efficientb0"
-save_submit_fname: "deeplabv3p_efficientb0_best_model.csv"
+save_model_dir: "/opt/ml/input/results"
 
 # set model
-model: "DeepLabV3Plus" # Unet Unet++ MAnet Linknet FPN PSPNet PAN DeepLabV3 DeepLabV3+
-encoder_name: "efficientnet-b0"
+model: "Unet" # Unet Unet++ MAnet Linknet FPN PSPNet PAN DeepLabV3 DeepLabV3+
+encoder_name: "resnet50"
 encoder_weights: "imagenet"
+model_info: "None"
 train_continue: False
 
 # hyperparameter
 seed: 42
-epochs: 200
-batch_size: 16
-num_workers: 4
+epochs: 500
+batch_size: 8
+num_workers: 8
 learning_rate: 0.0001   # 1e-4
 weight_decay: 0.000001  # 1e-6
 optimizer: "Adam"
-f16: True
+fp16: True
 
 # set log
 log_step: 20
-val_every: 5
-patience_limit: 3
+val_every: 1
+patience_limit: 5

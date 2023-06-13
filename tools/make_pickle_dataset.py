@@ -2,9 +2,11 @@ import argparse
 import gzip
 import os
 import pickle
+import sys
 
 from tqdm import tqdm
 
+sys.path.append("..")
 import augmentations
 from datasets import XRayDataset, XRayDatasetV2
 from utils import read_json
@@ -18,16 +20,12 @@ def main(config, args):
     train_path = os.path.join(args.target, "train")
     valid_path = os.path.join(args.target, "valid")
 
-    if config.augmentations:
-        train_aug = getattr(augmentations, config.augmentations.name)(
-            **config.augmentations.parameters
-        )
-        valid_aug = getattr(augmentations, "base_augmentation")(
-            config.augmentations.parameters.resize, mean=0.13189, std=0.17733
-        )
-    else:  # config.augmentation이 false일 경우 기본 데이터셋이면 config.input_size에 맞게 resize, pickle 데이터셋으면 변환없이 그대로 입력
-        train_aug = None
-        valid_aug = None
+    train_aug = getattr(augmentations, config.train_augmentations.name)(
+        **config.train_augmentations.parameters
+    )
+    valid_aug = getattr(augmentations, config.valid_augmentations.name)(
+        **config.valid_augmentations.parameters
+    )
 
     if args.v2:
         train_dataset = XRayDatasetV2(config, transforms=train_aug)
@@ -50,12 +48,16 @@ def main(config, args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c", "--config", default="./config.json", type=str, help="config file path (default: None)"
+        "-c",
+        "--config",
+        default="../config.json",
+        type=str,
+        help="config file path (default: None)",
     )
     parser.add_argument(
         "-t",
         "--target",
-        default="/opt/ml/cache_data",
+        default="/opt/ml/input/data_cache",
         type=str,
         help="cache dataset root directory",
     )

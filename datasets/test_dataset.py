@@ -1,8 +1,6 @@
 # python native
 import os
 
-import albumentations as A
-
 # external library
 import cv2
 import numpy as np
@@ -24,10 +22,7 @@ class XRayInferenceDataset(Dataset):
         _filenames = np.array(sorted(_filenames))
 
         self.filenames = _filenames
-        if transforms is None:
-            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
-        else:
-            self.transforms = transforms
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.filenames)

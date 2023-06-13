@@ -1,6 +1,7 @@
 # python native
 import json
 import os
+from glob import glob
 
 # external library
 import cv2
@@ -16,10 +17,21 @@ from utils.util import CLASS2IND, CLASSES
 
 
 class XRayDataset(Dataset):
-    def __init__(self, args, pngs, jsons, is_train=True, transforms=None):
+    def __init__(self, args, is_train=True, transforms=None):
         self.args = args
-        self.pngs = pngs
-        self.jsons = jsons
+
+        # Load Data
+        pngs = glob(os.path.join(args.image_dir, "*", "*.png"))
+        jsons = glob(os.path.join(args.label_dir, "*", "*.json"))
+
+        jsons_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in jsons}
+        pngs_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in pngs}
+
+        assert len(jsons_fn_prefix - pngs_fn_prefix) == 0
+        assert len(pngs_fn_prefix - jsons_fn_prefix) == 0
+
+        self.pngs = sorted(pngs)
+        self.jsons = sorted(jsons)
 
         _filenames = np.array(self.pngs)
         _labelnames = np.array(self.jsons)

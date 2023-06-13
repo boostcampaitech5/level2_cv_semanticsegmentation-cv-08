@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 # utils
 from datasets.test_dataset import XRayInferenceDataset
 from runner.test_runner import test
-from utils.util import AttributeDict, set_seed
+from utils.util import AttributeDict, check_directory, set_seed
 
 
 def main(args):
@@ -55,7 +55,7 @@ def main(args):
     )
 
     print(df.head(10))
-
+    print(f"save csv directory : {os.path.join(args.save_submit_dir, args.save_submit_fname)}")
     df.to_csv(os.path.join(args.save_submit_dir, args.save_submit_fname), index=False)
 
 
@@ -84,7 +84,8 @@ if __name__ == "__main__":
     # set seed
     set_seed(args.seed)
 
-    # check save_dir
-    assert os.path.isdir(args.save_model_dir), "please check save dir"
+    # check save model dir
+    args.inference = True
+    args = check_directory(args)
 
     main(args)

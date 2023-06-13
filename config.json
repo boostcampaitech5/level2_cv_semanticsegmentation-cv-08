@@ -1,5 +1,5 @@
 {
-    "model": "fcn_resnet50",
+    "model": "deconvnet",
     "smp": {
         "use_smp": false,
         "model": "DeepLabV3Plus",
@@ -14,24 +14,35 @@
     "valid_cache_data_dir": "/opt/ml/cache_data_512_norm/valid",
     "test_image_root": "/opt/ml/data/test/DCM",
     "dataset": "CacheDataset",
-    "input_size": 1024,
     "num_classes": 29,
-    "loss": "FocalLoss",
-    "epochs": 10,
-    "train_batch_size": 1,
-    "valid_batch_size": 1,
+    "loss": "BCEWithLogitsLoss",
+    "epochs": 100,
+    "train_batch_size": 8,
+    "valid_batch_size": 4,
     "test_batch_size": 1,
     "optimizer": {
         "type": "Adam",
         "parameters": {
-            "lr": 0.00001,
+            "lr": 0.0001,
             "weight_decay": 1e-6
         }
     },
-    "augmentations": {
+    "train_augmentations": {
         "name": "base_augmentation",
         "parameters": {
-            "resize": 2048
+            "resize": 512
+        }
+    },
+    "valid_augmentations": {
+        "name": "base_augmentation",
+        "parameters": {
+            "resize": 512
+        }
+    },
+    "test_augmentations": {
+        "name": "base_augmentation",
+        "parameters": {
+            "resize": 512
         }
     },
     "model_dir": "./model_dir/test",
@@ -39,8 +50,8 @@
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
-    "patience_limit": 10,
-    "fp16": true,
+    "patience_limit": 20,
+    "fp16": false,
     "accumulation_step": 1,
     "wandb": {
         "use_wandb": false,
@@ -49,7 +60,7 @@
         "run_name": "test"
     },
     "resume_from": false,
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/test/best.pt",
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/deeplabv3_resnet50_512/best.pt",
     "train_num_workers": 4,
     "valid_num_workers": 2,
     "test_num_workers": 2

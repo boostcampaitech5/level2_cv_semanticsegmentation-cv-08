@@ -2,7 +2,6 @@ import json
 import os
 import sys
 
-import albumentations as A
 import cv2
 import numpy as np
 import torch
@@ -72,12 +71,7 @@ class XRayDataset(Dataset):
         self.labelnames = labelnames
         self.is_train = is_train
 
-        if transforms is None:
-            print("transforms is None")
-            print(transforms)
-            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
-        else:
-            self.transforms = transforms
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.filenames)
@@ -192,6 +186,114 @@ class XRayDatasetV2(Dataset):
             result = self.transforms(**inputs)
 
             image = result["image"]
+            label = result["mask"]
+
+        # to tenser will be done later
+        image = image.transpose(2, 0, 1)  # make channel first
+        label = label.transpose(2, 0, 1)
+
+        image = torch.from_numpy(image).float()
+        label = torch.from_numpy(label).float()
+
+        return image, label
+
+
+class XRayDatasetFast(Dataset):
+    def __init__(self, config, is_train=True, transforms=None):
+        self.config = config
+        self.npys = {
+            os.path.relpath(os.path.join(root, fname), start=config.label_root)
+            for root, _dirs, files in os.walk(config.label_root)
+            for fname in files
+            if os.path.splitext(fname)[1].lower() == ".npy"
+        }
+
+        self.pngs = {
+            os.path.relpath(os.path.join(root, fname), start=config.image_root)
+            for root, _dirs, files in os.walk(config.image_root)
+            for fname in files
+            if os.path.splitext(fname)[1].lower() == ".png"
+        }
+
+        self.pngs = sorted(self.pngs)
+        self.npys = sorted(self.npys)
+
+        _filenames = np.array(self.pngs)
+        _labelnames = np.array(self.npys)
+
+        # split train-valid
+        # 한 폴더 안에 한 인물의 양손에 대한 `.dcm` 파일이 존재하기 때문에
+        # 폴더 이름을 그룹으로 해서 GroupKFold를 수행합니다.
+        # 동일 인물의 손이 train, valid에 따로 들어가는 것을 방지합니다.
+
+        groups = [os.path.dirname(fname) for fname in _filenames]
+
+        # dummy label
+        ys = [0 for fname in _filenames]
+
+        # 전체 데이터의 20%를 validation data로 쓰기 위해 `n_splits`를
+        # 5으로 설정하여 KFold를 수행합니다.
+        gkf = GroupKFold(n_splits=5)
+
+        filenames = []
+        labelnames = []
+        for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
+            if is_train:
+                # 0번을 validation dataset으로 사용합니다.
+                if i == 0:
+                    continue
+
+                filenames += list(_filenames[y])
+                labelnames += list(_labelnames[y])
+
+            else:
+                filenames = list(_filenames[y])
+                labelnames = list(_labelnames[y])
+
+                # skip i > 0
+                break
+
+        self.filenames = filenames
+        self.labelnames = labelnames
+        self.is_train = is_train
+
+        if transforms is None:
+            print("transforms is None")
+            print(transforms)
+            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
+        else:
+            self.transforms = transforms
+
+    def __len__(self):
+        return len(self.filenames)
+
+    def __getitem__(self, item):
+        image_name = self.filenames[item]
+        image_path = os.path.join(self.config["image_root"], image_name)
+
+        image = cv2.imread(image_path)
+        image = image / 255.0
+        
+        label_name = self.labelnames[item]
+        label_path = os.path.join(self.config["label_root"], label_name)
+
+        # process a label of shape (H, W, NC)
+
+        with open(label_path, "rb") as f:
+            label_np = np.load(f)
+            if isinstance(label_np, np.lib.npyio.NpzFile):
+                label = np.load(f)["arr_0"]
+            else:
+                label = label_np
+        label = np.unpackbits(label).reshape(2048, 2048, 29)
+
+        if self.transforms is not None:
+            # inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
+            inputs = {"image": image, "mask": label}
+            result = self.transforms(**inputs)
+
+            image = result["image"]
+            # label = result["mask"] if self.is_train else label
             label = result["mask"]
 
         # to tenser will be done later
