@@ -17,4 +17,8 @@ class ConfigParser:
         return cls(args)
 
     def __getitem__(self, name):
-        return self._config[name]
+        if self._config.get(name):
+            return self._config[name]
+        else:
+            None
+        # return self._config[name]

@@ -1,6 +1,7 @@
 {
-    "model": "DeconvNet",
-    "model_file_name": "fifth.pt",
+    "model": "fcn_resnet50",
+    "model_file_name": "test.pt",
+    "feed_size": 512,
     "image_root": "/opt/ml/input/code/train/DCM",
     "label_root": "/opt/ml/input/code/train/outputs_json",
     "train_cache_data_dir": "/opt/ml/input/code/train_cache",
@@ -9,12 +10,19 @@
     "dataset": "cache_dataset",
     "class_num": 29,
     "loss": "BCEWithLogitsLoss",
-    "epochs": 200,
+    "epochs": 500,
     "train_batch_size": 8,
     "show_train_step": 2,
     "valid_batch_size": 8,
+    "scheduler": {
+        "type": "PolynomialLR",
+        "parameters": {
+            "total_iters": 500,
+            "power": 1.0
+        }
+    },
     "optimizer": {
-        "type": "Adam",
+        "type": "AdamW",
         "parameters": {
             "lr": 0.001
         }

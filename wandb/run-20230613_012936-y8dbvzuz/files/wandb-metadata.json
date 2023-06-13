@@ -1,0 +1,85 @@
+{
+    "os": "Linux-4.4.0-210-generic-x86_64-with-glibc2.10",
+    "python": "3.8.5",
+    "heartbeatAt": "2023-06-13T01:29:37.221834",
+    "startedAt": "2023-06-13T01:29:36.606118",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "train.py",
+    "codePath": "train.py",
+    "git": {
+        "remote": "https://github.com/boostcampaitech5/level2_cv_semanticsegmentation-cv-08.git",
+        "commit": "cc06430779380a3c45e53307d99e0daa380b7b6a"
+    },
+    "email": "fneaplle@gmail.com",
+    "root": "/opt/ml/input/code/baseline",
+    "host": "655e91bb3664",
+    "username": "root",
+    "executable": "/opt/conda/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2200.0839999999994,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2200.084,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "total": 98.30496215820312,
+        "used": 30.906269073486328
+    },
+    "gpu": "Tesla V100-PCIE-32GB",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Tesla V100-PCIE-32GB",
+            "memory_total": 34089730048
+        }
+    ],
+    "memory": {
+        "total": 88.50577545166016
+    }
+}

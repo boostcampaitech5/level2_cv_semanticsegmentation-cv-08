@@ -8,9 +8,12 @@ __pycache__
 
 test.py
 
+get-pip.py
+
 *.ipynb
 
 nohup.out
 
+wandb
 
 

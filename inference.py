@@ -80,7 +80,9 @@ def main(config):
         "class": classes,
         "rle": rles,
     })
-    df.to_csv("./CSVs/fifth.csv", index=False)
+    
+    # df.to_csv("./CSVs/six.csv", index=False)
+    df.to_csv("./CSVs/"+config['model_file_name'].split('.')[0]+'.csv', index=False)
     
 if __name__=="__main__":
     args = argparse.ArgumentParser()

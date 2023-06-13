@@ -12,6 +12,7 @@ import os
 import loss as module_loss
 import model as CustomModel
 import utils
+import wandb
 
 def main(config):
     utils.set_seed(config['seed'])
@@ -24,6 +25,9 @@ def main(config):
     optimizer = partial(getattr(torch.optim, config['optimizer']['type']))
     optimizer = optimizer(model.parameters(), **config['optimizer']['parameters'])
     criterion = getattr(module_loss, config['loss'])()
+    
+    if config['scheduler']:
+        scheduler = getattr(torch.optim.lr_scheduler, config['scheduler']['type'])(optimizer, **config['scheduler']['parameters'])
     
     best_dice = 0.
     epochs = config['epochs']
@@ -50,9 +54,8 @@ def main(config):
     
     for epoch in range(epochs):
         model.train()
-        
         # train step
-        for step, (images, masks) in enumerate(train_loader):
+        for step, (images, masks) in enumerate(train_loader):            
             image, masks = images.cuda(), masks.cuda()
             
             outputs = model.train_step(image)
@@ -64,11 +67,20 @@ def main(config):
             
             if (step+1)%config['show_train_step']==0:
                 print(
-                    f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | '
-                    f'Epoch [{epoch+1}/{epochs}], '
-                    f'Step [{step+1}/{len(train_loader)}], '
+                    f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | ',
+                    f'Epoch [{epoch+1}/{epochs}], ',
+                    f'Step [{step+1}/{len(train_loader)}], ',
                     f'Loss: {round(loss.item(),4)}'
                 )
+            
+            # wandb logging
+            wandb.log({"train loss":loss})
+            
+        scheduler.step()
+        print(f'current learning rate : {scheduler.get_last_lr()[0]: .6f}')
+        
+        #wandb logging
+        wandb.log({"learning rate" : scheduler.get_last_lr()[0]})
         
         # validate step
         dices = []
@@ -110,6 +122,8 @@ def main(config):
             print(dice_str)
             
             avg_dice = torch.mean(dices_per_class).item()
+            #wandb logging
+            wandb.log({"validation dice":avg_dice})
             
             if best_dice < avg_dice:
                 print(f"Best performance at epoch: {epoch + 1}, {best_dice:.4f} -> {avg_dice:.4f}")
@@ -123,5 +137,14 @@ if __name__=="__main__":
     args = argparse.ArgumentParser()
     args.add_argument('-c', '--config', default='./config.json', type=str,
                     help='config file path (default: None)')
+    
+    wandb.login()
+    run = wandb.init(
+        project="segmentation",
+        entity="fneaplle",
+        name="segFormer",
+        config=args.parse_args()
+    )
+    
     config = ConfigParser.from_args(args)
     main(config)

@@ -1,0 +1,104 @@
+
+Start trainig.....
+2023-06-13 01:40:10 |  Epoch [1/500],  Step [2/80],  Loss: 0.7037
+2023-06-13 01:40:11 |  Epoch [1/500],  Step [4/80],  Loss: 0.6896
+2023-06-13 01:40:12 |  Epoch [1/500],  Step [6/80],  Loss: 0.6844
+2023-06-13 01:40:14 |  Epoch [1/500],  Step [8/80],  Loss: 0.6806
+2023-06-13 01:40:15 |  Epoch [1/500],  Step [10/80],  Loss: 0.6766
+2023-06-13 01:40:16 |  Epoch [1/500],  Step [12/80],  Loss: 0.6721
+2023-06-13 01:40:17 |  Epoch [1/500],  Step [14/80],  Loss: 0.6671
+2023-06-13 01:40:18 |  Epoch [1/500],  Step [16/80],  Loss: 0.6613
+2023-06-13 01:40:19 |  Epoch [1/500],  Step [18/80],  Loss: 0.6546
+2023-06-13 01:40:20 |  Epoch [1/500],  Step [20/80],  Loss: 0.6467
+2023-06-13 01:40:22 |  Epoch [1/500],  Step [22/80],  Loss: 0.6378
+2023-06-13 01:40:23 |  Epoch [1/500],  Step [24/80],  Loss: 0.6278
+2023-06-13 01:40:24 |  Epoch [1/500],  Step [26/80],  Loss: 0.6166
+2023-06-13 01:40:25 |  Epoch [1/500],  Step [28/80],  Loss: 0.6041
+2023-06-13 01:40:26 |  Epoch [1/500],  Step [30/80],  Loss: 0.5902
+2023-06-13 01:40:27 |  Epoch [1/500],  Step [32/80],  Loss: 0.575
+2023-06-13 01:40:28 |  Epoch [1/500],  Step [34/80],  Loss: 0.5587
+2023-06-13 01:40:30 |  Epoch [1/500],  Step [36/80],  Loss: 0.541
+2023-06-13 01:40:31 |  Epoch [1/500],  Step [38/80],  Loss: 0.5222
+2023-06-13 01:40:32 |  Epoch [1/500],  Step [40/80],  Loss: 0.5025
+2023-06-13 01:40:33 |  Epoch [1/500],  Step [42/80],  Loss: 0.4818
+2023-06-13 01:40:34 |  Epoch [1/500],  Step [44/80],  Loss: 0.4604
+2023-06-13 01:40:36 |  Epoch [1/500],  Step [46/80],  Loss: 0.4381
+2023-06-13 01:40:37 |  Epoch [1/500],  Step [48/80],  Loss: 0.4157
+2023-06-13 01:40:38 |  Epoch [1/500],  Step [50/80],  Loss: 0.3932
+2023-06-13 01:40:39 |  Epoch [1/500],  Step [52/80],  Loss: 0.3704
+2023-06-13 01:40:40 |  Epoch [1/500],  Step [54/80],  Loss: 0.3481
+2023-06-13 01:40:42 |  Epoch [1/500],  Step [56/80],  Loss: 0.3258
+2023-06-13 01:40:43 |  Epoch [1/500],  Step [58/80],  Loss: 0.3039
+2023-06-13 01:40:44 |  Epoch [1/500],  Step [60/80],  Loss: 0.2831
+2023-06-13 01:40:45 |  Epoch [1/500],  Step [62/80],  Loss: 0.2623
+2023-06-13 01:40:47 |  Epoch [1/500],  Step [64/80],  Loss: 0.2427
+2023-06-13 01:40:48 |  Epoch [1/500],  Step [66/80],  Loss: 0.2252
+2023-06-13 01:40:49 |  Epoch [1/500],  Step [68/80],  Loss: 0.2079
+2023-06-13 01:40:50 |  Epoch [1/500],  Step [70/80],  Loss: 0.1917
+2023-06-13 01:40:51 |  Epoch [1/500],  Step [72/80],  Loss: 0.177
+2023-06-13 01:40:53 |  Epoch [1/500],  Step [74/80],  Loss: 0.1639
+2023-06-13 01:40:54 |  Epoch [1/500],  Step [76/80],  Loss: 0.151
+2023-06-13 01:40:55 |  Epoch [1/500],  Step [78/80],  Loss: 0.1393
+2023-06-13 01:40:56 |  Epoch [1/500],  Step [80/80],  Loss: 0.1294
+current learning rate :  0.000998
+finger-1    : 0.0041
+finger-2    : 0.0080
+finger-3    : 0.0214
+finger-4    : 0.0264
+finger-5    : 0.0048
+finger-6    : 0.0105
+finger-7    : 0.0314
+finger-8    : 0.0132
+finger-9    : 0.0062
+finger-10   : 0.0128
+finger-11   : 0.0192
+finger-12   : 0.0028
+finger-13   : 0.0057
+finger-14   : 0.0559
+finger-15   : 0.0115
+finger-16   : 0.0109
+finger-17   : 0.0172
+finger-18   : 0.0368
+finger-19   : 0.0125
+Trapezium   : 0.0085
+Trapezoid   : 0.0028
+Capitate    : 0.0077
+Hamate      : 0.0055
+Scaphoid    : 0.0053
+Lunate      : 0.0042
+Triquetrum  : 0.0036
+Pisiform    : 0.0000
+Radius      : 0.0520
+Ulna        : 0.0192
+Traceback (most recent call last):
+  File "train.py", line 155, in <module>
+    main(config)
+  File "train.py", line 130, in main
+    wandb.log({"validation dice":avg_dice,
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 391, in wrapper
+    return func(self, *args, **kwargs)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 342, in wrapper_fn
+    return func(self, *args, **kwargs)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 332, in wrapper
+    return func(self, *args, **kwargs)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 1748, in log
+    self._log(data=data, step=step, commit=commit)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 1529, in _log
+    self._partial_history_callback(data, step, commit)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/wandb_run.py", line 1399, in _partial_history_callback
+    self._backend.interface.publish_partial_history(
+  File "/opt/conda/lib/python3.8/site-packages/wandb/sdk/interface/interface.py", line 580, in publish_partial_history
+    item.value_json = json_dumps_safer_history(v)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/util.py", line 783, in json_dumps_safer_history
+    return json.dumps(obj, cls=WandBHistoryJSONEncoder, **kwargs)
+  File "/opt/conda/lib/python3.8/json/__init__.py", line 234, in dumps
+    return cls(
+  File "/opt/conda/lib/python3.8/json/encoder.py", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/opt/conda/lib/python3.8/json/encoder.py", line 257, in iterencode
+    return _iterencode(o, 0)
+  File "/opt/conda/lib/python3.8/site-packages/wandb/util.py", line 748, in default
+    return json.JSONEncoder.default(self, obj)
+  File "/opt/conda/lib/python3.8/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type set is not JSON serializable
