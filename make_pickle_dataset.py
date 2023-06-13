@@ -17,7 +17,7 @@ def main(config, args):
 
     train_path = os.path.join(args.target, "train")
     valid_path = os.path.join(args.target, "valid")
-    
+
     if config.augmentations:
         train_aug = getattr(augmentations, config.augmentations.name)(
             **config.augmentations.parameters
@@ -59,9 +59,9 @@ if __name__ == "__main__":
         type=str,
         help="cache dataset root directory",
     )
-    parser.add_argument('--v2', action='store_true', help='Use XRayDatasetV2')
+    parser.add_argument("--v2", action="store_true", help="Use XRayDatasetV2")
 
     args = parser.parse_args()
     config = read_json(args.config)
-    
+
     main(config, args)

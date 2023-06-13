@@ -133,16 +133,17 @@ class XRayDataset(Dataset):
 
 class XRayDatasetV2(Dataset):
     """Loads data paths from a json file"""
+
     def __init__(self, config, is_train=True, transforms=None):
-        self.image_root = config['image_root']
-        self.label_root = config['label_root']
-        
+        self.image_root = config["image_root"]
+        self.label_root = config["label_root"]
+
         if is_train:
-            self.json_path = config['train_json_path']
+            self.json_path = config["train_json_path"]
         else:
-            self.json_path = config['valid_json_path']
-        
-        with open(self.json_path, 'r') as f:
+            self.json_path = config["valid_json_path"]
+
+        with open(self.json_path, "r") as f:
             _fnames = json.load(f)
 
         _fnames = dict(sorted(_fnames.items()))
@@ -152,19 +153,18 @@ class XRayDatasetV2(Dataset):
             self.fnames.extend(v)
 
         if transforms is None:
-            self.transforms = A.Compose(
-                [A.Resize(config.input_size, config.input_size)], p=1.0)
+            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
         else:
             self.transforms = transforms
 
     def __len__(self):
         return len(self.fnames)
-    
+
     def __getitem__(self, idx):
         fname = self.fnames[idx]  # ex) ID002/image1661144246917
-        image_path = os.path.join(self.image_root, f'{fname}.png')
-        label_path = os.path.join(self.label_root, f'{fname}.json')
-        
+        image_path = os.path.join(self.image_root, f"{fname}.png")
+        label_path = os.path.join(self.label_root, f"{fname}.json")
+
         image = cv2.imread(image_path)
         image = image / 255.0
 
@@ -200,6 +200,5 @@ class XRayDatasetV2(Dataset):
 
         image = torch.from_numpy(image).float()
         label = torch.from_numpy(label).float()
-        
+
         return image, label
-    
