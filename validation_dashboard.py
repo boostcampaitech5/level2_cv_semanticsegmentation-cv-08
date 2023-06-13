@@ -2,16 +2,14 @@ import os
 
 import cv2
 import numpy as np
-import pandas as pd
 import streamlit as st
 import torch
-from streamlit import session_state as state
 import torch.nn.functional as F
-
+from streamlit import session_state as state
 
 import augmentations
 from datasets import XRayDatasetV2
-from utils import CLASSES, label2rgb, read_json
+from utils import label2rgb, read_json
 
 
 def load_local_model():
@@ -46,8 +44,8 @@ def predict(idx, thr=0.5):
             label = torch.unsqueeze(label, 0)
             label = F.interpolate(label, size=(2048, 2048), mode="bilinear")
 
-            false_positive = np.where(label-output<0, 1, 0)[0]
-            false_negative = np.where(label-output>0, 1, 0)[0]
+            false_positive = np.where(label - output < 0, 1, 0)[0]
+            false_negative = np.where(label - output > 0, 1, 0)[0]
 
         state.prediction_cache[idx] = {
             "pred": output,
@@ -62,9 +60,9 @@ def visualize(idx):
     col1, col2, col3, col4, col5 = st.columns([0.2, 0.2, 0.2, 0.2, 0.2])
 
     img_fname = state.prediction_cache[idx]["filename"]
-    image = cv2.imread(os.path.join(state.config.image_root, f'{img_fname}.png'))
+    image = cv2.imread(os.path.join(state.config.image_root, f"{img_fname}.png"))
     image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
-    
+
     gt = state.prediction_cache[idx]["label"]
     gt = label2rgb(gt)
     gt = cv2.resize(gt, (512, 512), interpolation=cv2.INTER_AREA)
@@ -72,11 +70,11 @@ def visualize(idx):
     seg_map = state.prediction_cache[idx]["pred"]
     seg_map = label2rgb(seg_map)
     seg_map = cv2.resize(seg_map, (512, 512), interpolation=cv2.INTER_AREA)
-    
+
     false_positive = state.prediction_cache[idx]["false_positive"]
     false_positive = label2rgb(false_positive)
     false_positive = cv2.resize(false_positive, (512, 512), interpolation=cv2.INTER_AREA)
-    
+
     false_negative = state.prediction_cache[idx]["false_negative"]
     false_negative = label2rgb(false_negative)
     false_negative = cv2.resize(false_negative, (512, 512), interpolation=cv2.INTER_AREA)
@@ -91,54 +89,48 @@ def visualize(idx):
         st.image(gt, use_column_width="auto")
 
     with col3:
-        st.markdown(
-            '<p style="text-align: center;">Prediction</p>', unsafe_allow_html=True
-        )
+        st.markdown('<p style="text-align: center;">Prediction</p>', unsafe_allow_html=True)
         st.image(seg_map, use_column_width="auto")
 
     with col4:
-        st.markdown(
-            '<p style="text-align: center;">False Positive</p>', unsafe_allow_html=True
-        )
+        st.markdown('<p style="text-align: center;">False Positive</p>', unsafe_allow_html=True)
         st.image(false_positive, use_column_width="auto")
 
     with col5:
-        st.markdown(
-            '<p style="text-align: center;">False Negative</p>', unsafe_allow_html=True
-        )
+        st.markdown('<p style="text-align: center;">False Negative</p>', unsafe_allow_html=True)
         st.image(false_negative, use_column_width="auto")
 
 
 if __name__ == "__main__":
     st.set_page_config(page_title="Segmentation Inference Dashboard", layout="wide")
-    
+
     if "prediction_cache" not in state:
         state.prediction_cache = {}
-    
+
     if "curr_config_path" not in state:
         state.curr_config_path = {}
-    
+
     st.header("Validation Results")
 
     st.text_input("Config Path", key="new_config_path")
-    
+
     if not state.curr_config_path:
         state.curr_config_path = state.new_config_path
     elif state.curr_config_path != state.new_config_path:
-        state.prediction_cache.clear()    
+        state.prediction_cache.clear()
         state.curr_config_path = state.new_config_path
-    
+
     if len(state.curr_config_path) > 0:
         state.config = read_json(state.curr_config_path)
         if not state.prediction_cache:
             load_local_model()
             load_dataset()
-        
-        fname_list = [f'{i}: {f}' for i, f in enumerate(state.fnames)]
+
+        fname_list = [f"{i}: {f}" for i, f in enumerate(state.fnames)]
         idx_str = st.selectbox("Choose image", fname_list)
-        idx = int(idx_str.split(':')[0])
+        idx = int(idx_str.split(":")[0])
 
         if idx not in state.prediction_cache.keys():
             predict(idx)
-            
+
         visualize(idx)
