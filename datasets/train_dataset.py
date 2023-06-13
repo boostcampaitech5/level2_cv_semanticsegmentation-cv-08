@@ -125,6 +125,79 @@ class XRayDataset(Dataset):
         return image, label
 
 
+class XRayDatasetV2(Dataset):
+    """Loads data paths from a json file"""
+
+    def __init__(self, config, is_train=True, transforms=None):
+        self.image_root = config["image_root"]
+        self.label_root = config["label_root"]
+
+        if is_train:
+            self.json_path = config["train_json_path"]
+        else:
+            self.json_path = config["valid_json_path"]
+
+        with open(self.json_path, "r") as f:
+            _fnames = json.load(f)
+
+        _fnames = dict(sorted(_fnames.items()))
+        self.ids, self.fnames = [], []
+        for k, v in _fnames.items():
+            self.ids.append(k)
+            self.fnames.extend(v)
+
+        if transforms is None:
+            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
+        else:
+            self.transforms = transforms
+
+    def __len__(self):
+        return len(self.fnames)
+
+    def __getitem__(self, idx):
+        fname = self.fnames[idx]  # ex) ID002/image1661144246917
+        image_path = os.path.join(self.image_root, f"{fname}.png")
+        label_path = os.path.join(self.label_root, f"{fname}.json")
+
+        image = cv2.imread(image_path)
+        image = image / 255.0
+
+        label_shape = tuple(image.shape[:2]) + (len(CLASSES),)
+        label = np.zeros(label_shape, dtype=np.uint8)
+
+        with open(label_path, "r") as f:
+            annotations = json.load(f)
+        annotations = annotations["annotations"]
+
+        for ann in annotations:
+            c = ann["label"]
+            # CLASS2IND
+            class_ind = CLASS2IND[c]
+            points = np.array(ann["points"])
+
+            # polygon to mask
+            class_label = np.zeros(image.shape[:2], dtype=np.uint8)
+
+            cv2.fillPoly(class_label, [points], 1)
+            label[..., class_ind] = class_label
+
+        if self.transforms is not None:
+            inputs = {"image": image, "mask": label}
+            result = self.transforms(**inputs)
+
+            image = result["image"]
+            label = result["mask"]
+
+        # to tenser will be done later
+        image = image.transpose(2, 0, 1)  # make channel first
+        label = label.transpose(2, 0, 1)
+
+        image = torch.from_numpy(image).float()
+        label = torch.from_numpy(label).float()
+
+        return image, label
+
+
 class XRayDatasetFast(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
         self.config = config
@@ -229,4 +302,5 @@ class XRayDatasetFast(Dataset):
 
         image = torch.from_numpy(image).float()
         label = torch.from_numpy(label).float()
+
         return image, label
