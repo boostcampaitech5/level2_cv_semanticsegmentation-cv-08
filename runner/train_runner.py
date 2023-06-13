@@ -83,7 +83,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                     wandb.log({"train/loss": loss.item()})
         if (epoch + 1) % config.val_every == 0:
             dice = valid(config, epoch + 1, model, val_loader, criterion)
-            lr_scheduler.step(dice)
+            if config.scheduler.type == "ReduceLROnPlateau":
+                lr_scheduler.step(dice)
+            else:
+                lr_scheduler.step()
 
             if best_dice <= dice:
                 print(f"Best performance at epoch: {epoch + 1}, {best_dice:.6f} -> {dice:.6f}")

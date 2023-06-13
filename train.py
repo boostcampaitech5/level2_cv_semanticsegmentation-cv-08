@@ -48,10 +48,10 @@ def main(config):
     optimizer = partial(getattr(torch.optim, config.optimizer.type))
     optimizer = optimizer(model.parameters(), **config.optimizer.parameters)
     criterion = getattr(loss, config.loss)()
-    lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
-                                                              mode='max',
-                                                              factor=0.5,
-                                                              patience=config.scheduler_patience)    
+    lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
+        optimizer,
+        **config.scheduler.parameteres
+    )
 
     train_aug = getattr(augmentations, config.train_augmentations.name)(
         **config.train_augmentations.parameters

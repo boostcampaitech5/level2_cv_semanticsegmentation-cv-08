@@ -2,22 +2,22 @@
     "model": "fcn_resnet50",
     "smp": {
         "use_smp": true,
-        "model": "UnetPlusPlus",
-        "encoder_name": "resnext50_32x4d",
-        "encoder_weights": "swsl"
+        "model": "Unet",
+        "encoder_name": "timm-regnety_040",
+        "encoder_weights": "imagenet"
     },
     "image_root": "/opt/ml/data/train/DCM",
     "label_root": "/opt/ml/data/train/outputs_json",
     "train_cache_data_dir": "/opt/ml/cache_data_512/train",
     "valid_cache_data_dir": "/opt/ml/cache_data_512/valid",
     "test_image_root": "/opt/ml/data/test",
-    "dataset": "XRayDatasetFast",
+    "dataset": "CacheDataset",
     "num_classes": 29,
-    "loss": "BCEDiceLoss",
+    "loss": "BCEWithLogitsLoss",
     "epochs": 100,
-    "train_batch_size": 1,
-    "valid_batch_size": 1,
-    "test_batch_size": 1,
+    "train_batch_size": 8,
+    "valid_batch_size": 4,
+    "test_batch_size": 2,
     "optimizer": {
         "type": "Adam",
         "parameters": {
@@ -25,16 +25,26 @@
             "weight_decay": 1e-06
         }
     },
-    "train_augmentations": {
-        "name": "horizontal_flip",
+    "scheduler": {
+        "type": "MultiStepLR",
         "parameters": {
-            "resize": 1920
+            "milestones": [
+                50,
+                100
+            ],
+            "gamma": 0.5
+        }
+    },
+    "train_augmentations": {
+        "name": "base_augmentation",
+        "parameters": {
+            "resize": 512
         }
     },
     "valid_augmentations": {
         "name": "base_augmentation",
         "parameters": {
-            "resize": 1920
+            "resize": 512
         }
     },
     "test_augmentations": {
@@ -43,24 +53,23 @@
             "resize": 512
         }
     },
-    "model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet++_resnext50_1920_BCEDICE_Flip",
+    "model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet_regnety-040_512_epoch-15-start",
     "model_file_name": "best.pt",
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
-    "patience_limit": 10,
-    "scheduler_patience": 5,
+    "patience_limit": 20,
     "fp16": false,
-    "accumulation_step": 8,
+    "accumulation_step": 1,
     "wandb": {
         "use_wandb": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "unet++_resnext50_1920_BCEDICE_Flip"
+        "run_name": "unet_regnety-040_512_epoch-15-start"
     },
-    "resume_from": false,
+    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet_regnety-040_512/last.pt",
     "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/deeplabv3_resnet50_512/best_94-epoch_0.945642.pt",
-    "train_num_workers": 1,
-    "valid_num_workers": 1,
+    "train_num_workers": 4,
+    "valid_num_workers": 2,
     "test_num_workers": 2
 }
