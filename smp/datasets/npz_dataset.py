@@ -16,25 +16,25 @@ from torch.utils.data import Dataset
 from utils.util import CLASS2IND, CLASSES
 
 
-class XRayDataset(Dataset):
+class NpzDataset(Dataset):
     def __init__(self, args, is_train=True, transforms=None):
         self.args = args
 
         # Load Data
-        pngs = glob(os.path.join(args.dataset.XRayDataset.image_dir, "*", "*.png"))
-        jsons = glob(os.path.join(args.dataset.XRayDataset.label_dir, "*", "*.json"))
+        pngs = glob(os.path.join(args.dataset.NpzDataset.image_dir, "*", "*.png"))
+        npys = glob(os.path.join(args.dataset.NpzDataset.label_dir, "*", "*.npy"))
 
-        jsons_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in jsons}
+        npys_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in npys}
         pngs_fn_prefix = {os.path.splitext(os.path.basename(fname))[0] for fname in pngs}
 
-        assert len(jsons_fn_prefix - pngs_fn_prefix) == 0
-        assert len(pngs_fn_prefix - jsons_fn_prefix) == 0
+        assert len(npys_fn_prefix - pngs_fn_prefix) == 0
+        assert len(pngs_fn_prefix - npys_fn_prefix) == 0
 
         self.pngs = sorted(pngs)
-        self.jsons = sorted(jsons)
+        self.npys = sorted(npys)
 
         _filenames = np.array(self.pngs)
-        _labelnames = np.array(self.jsons)
+        _labelnames = np.array(self.npys)
 
         # split train-valid
         # 한 폴더 안에 한 인물의 양손에 대한 `.dcm` 파일이 존재하기 때문에
@@ -77,33 +77,26 @@ class XRayDataset(Dataset):
 
     def __getitem__(self, item):
         image_name = self.filenames[item]
-        image_path = os.path.join(self.args.dataset.XRayDataset.image_dir, image_name)
+        image_path = os.path.join(self.args.dataset.NpzDataset.image_dir, image_name)
 
         image = cv2.imread(image_path)
         image = image / 255.0
 
         label_name = self.labelnames[item]
-        label_path = os.path.join(self.args.dataset.XRayDataset.label_dir, label_name)
+        label_path = os.path.join(self.args.dataset.NpzDataset.label_dir, label_name)
 
         # process a label of shape (H, W, NC)
         label_shape = tuple(image.shape[:2]) + (len(CLASSES),)
         label = np.zeros(label_shape, dtype=np.uint8)
 
         # read label file
-        with open(label_path, "r") as f:
-            annotations = json.load(f)
-        annotations = annotations["annotations"]
-
-        # iterate each class
-        for ann in annotations:
-            c = ann["label"]
-            class_ind = CLASS2IND[c]
-            points = np.array(ann["points"])
-
-            # polygon to mask
-            class_label = np.zeros(image.shape[:2], dtype=np.uint8)
-            cv2.fillPoly(class_label, [points], 1)
-            label[..., class_ind] = class_label
+        with open(label_path, "rb") as f:
+            label_np = np.load(f)
+            if isinstance(label_np, np.lib.npyio.NpzFile):
+                label = np.load(f)["arr_0"]
+            else:
+                label = label_np
+        label = np.unpackbits(label).reshape(2048, 2048, 29)
 
         if self.transforms is not None:
             inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
