@@ -7,13 +7,14 @@ import segmentation_models_pytorch as smp
 
 # torch
 import torch
-import torch.nn as nn
 import torch.optim as optim
 
 # external library
 import wandb
 import yaml
 from torch.utils.data import DataLoader
+
+import datasets
 
 # utils
 import loss

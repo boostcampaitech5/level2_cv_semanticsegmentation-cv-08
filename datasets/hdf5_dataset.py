@@ -10,19 +10,18 @@ import h5py
 import torch
 from torch.utils.data import Dataset
 
-
 class Hdf5Dataset(Dataset):
-    def __init__(self, args, is_train=True, transforms=None):
-        self.args = args
+    def __init__(self, config, is_train=True, transforms=None):
+        self.config = config
         self.is_train = is_train
         self.transforms = transforms
         self.file = None
         
         if self.is_train:
-            self.data_dir = os.path.join(args.dataset.Hdf5Dataset.hdf5_dir, 'train')
+            self.data_dir = config.train_hdf5_data_dir
             self._filename = glob(os.path.join(self.data_dir, '*.h5py'))[0]
         else:
-            self.data_dir = os.path.join(args.dataset.Hdf5Dataset.hdf5_dir, 'valid')
+            self.data_dir = config.valid_hdf5_data_dir
             self._filename = glob(os.path.join(self.data_dir, '*.h5py'))[0]
 
     def __len__(self):
@@ -39,12 +38,11 @@ class Hdf5Dataset(Dataset):
         image = (np.array(image)/255.).astype(np.float32)
         label = (np.array(label)/255.).astype(np.float32)
 
-
         if self.transforms is not None:
             # (c, h ,w) -> (h, w, c)
             image = image.transpose(1, 2, 0)
             label = label.transpose(1, 2, 0)
-
+            
             inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
             result = self.transforms(**inputs)
 
@@ -57,7 +55,7 @@ class Hdf5Dataset(Dataset):
 
             image = torch.from_numpy(image).float()
             label = torch.from_numpy(label).float()
-
+            
             return image, label
 
         return torch.from_numpy(image).float(), torch.from_numpy(label).float()
