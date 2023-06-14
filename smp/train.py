@@ -7,7 +7,6 @@ import segmentation_models_pytorch as smp
 
 # torch
 import torch
-import torch.nn as nn
 import torch.optim as optim
 
 # external library
@@ -15,27 +14,34 @@ import wandb
 import yaml
 from torch.utils.data import DataLoader
 
+import datasets
+
 # utils
 import loss
-import datasets
 from runner.train_runner import train
 from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
 def main(args):
     # Augmentation
-    train_tf = A.Compose([   
-            A.CenterCrop(300, 300, p=0.5,),
+    train_tf = A.Compose(
+        [
+            A.CenterCrop(
+                300,
+                300,
+                p=0.5,
+            ),
             A.Resize(512, 512),
             # A.HorizontalFlip(p=0.5),
-        ])
-    valid_tf = A.Compose([A.Resize(512, 512)])
+        ]
+    )
+    A.Compose([A.Resize(512, 512)])
 
     train_dataset = getattr(datasets, args.dataset.use)(args, is_train=True, transforms=None)
     valid_dataset = getattr(datasets, args.dataset.use)(args, is_train=False, transforms=None)
 
     # Dataloader
-    train_loader = DataLoader( 
+    train_loader = DataLoader(
         dataset=train_dataset,
         batch_size=args.train.batch_size,
         shuffle=True,
@@ -47,7 +53,7 @@ def main(args):
         batch_size=args.valid.batch_size,
         shuffle=False,
         num_workers=args.valid.num_workers,
-        drop_last=False
+        drop_last=False,
     )
 
     # Model Define
@@ -69,7 +75,9 @@ def main(args):
 
     # Optimizer 정의
     optimizer = getattr(optim, args.optimizer.optim)(
-        params=model.parameters(), lr=args.optimizer.learning_rate, weight_decay=args.optimizer.weight_decay
+        params=model.parameters(),
+        lr=args.optimizer.learning_rate,
+        weight_decay=args.optimizer.weight_decay,
     )
 
     train(args, model, train_loader, valid_loader, criterion, optimizer)

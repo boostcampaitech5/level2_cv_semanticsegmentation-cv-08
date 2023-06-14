@@ -1,5 +1,4 @@
 # python native
-import json
 import os
 from glob import glob
 
@@ -13,7 +12,7 @@ from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
 
 # utils
-from utils.util import CLASS2IND, CLASSES
+from utils.util import CLASSES
 
 
 class NpzDataset(Dataset):

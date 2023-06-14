@@ -1,8 +1,8 @@
-from .train_dataset import XRayDataset
 from .cache_dataset import CacheDataset
-from .npz_dataset import NpzDataset
 from .hdf5_dataset import Hdf5Dataset
+from .npz_dataset import NpzDataset
 from .test_dataset import XRayInferenceDataset
+from .train_dataset import XRayDataset
 
 __all__ = [
     "XRayDataset",
