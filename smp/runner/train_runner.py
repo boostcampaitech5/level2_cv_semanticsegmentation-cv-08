@@ -13,7 +13,6 @@ from loss.metric import dice_coef
 
 # utils
 from utils.util import CLASSES, set_seed
-from loss.metric import dice_coef
 
 
 def train(args, model, data_loader, val_loader, criterion, optimizer):
@@ -79,7 +78,7 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}"
                 )
-                
+
             if args.wandb.use:
                 wandb.log({"train/loss": loss.item()})
 
@@ -130,7 +129,7 @@ def valid(args, epoch, model, data_loader, criterion, thr=0.5):
             cnt += 1
 
             outputs = torch.sigmoid(outputs)
-            
+
             outputs = outputs > thr
             masks = masks
 
