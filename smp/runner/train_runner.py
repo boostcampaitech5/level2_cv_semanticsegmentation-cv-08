@@ -10,7 +10,8 @@ import torch.nn.functional as F
 import wandb
 
 # utils
-from utils.util import CLASSES, dice_coef, set_seed
+from utils.util import CLASSES, set_seed
+from loss.metric import dice_coef
 
 
 def train(args, model, data_loader, val_loader, criterion, optimizer):
@@ -76,7 +77,7 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}"
                 )
-            wandb.log({"train/loss": loss.item()})
+            if args.wandb.use: wandb.log({"train/loss": loss.item()})
 
         # validation 주기에 따른 loss 출력 및 best model 저장
         if (epoch + 1) % args.val_every == 0:
@@ -93,7 +94,7 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                 if patience >= patience_limit:
                     break
 
-        wandb.log({"epoch": epoch})
+        if args.wandb.use: wandb.log({"epoch": epoch})
 
 
 def valid(args, epoch, model, data_loader, criterion, thr=0.5):
@@ -124,22 +125,22 @@ def valid(args, epoch, model, data_loader, criterion, thr=0.5):
             cnt += 1
 
             outputs = torch.sigmoid(outputs)
-            outputs = (outputs > thr).detach()
-            masks = masks.detach()
+            outputs = (outputs > thr)
+            masks = masks
 
-            dice = dice_coef(outputs, masks)
+            dice = dice_coef(outputs, masks).cpu()
             dices.append(dice)
 
             # step 주기에 따른 loss 출력
             if (step + 1) % (args.log_step // 2) == 0:
                 print(
                     f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")} | '
-                    f"Epoch [{epoch+1}/{args.epochs}], "
+                    f"Epoch [{epoch}/{args.epochs}], "
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}, ",
                     f"Dice: {round(torch.mean(dice).item(), 6)}",
                 )
-            wandb.log({"valid/loss": loss.item()})
+            if args.wandb.use: wandb.log({"valid/loss": loss.item()})
 
     dices = torch.cat(dices, 0)
     dices_per_class = torch.mean(dices, 0)
@@ -151,6 +152,6 @@ def valid(args, epoch, model, data_loader, criterion, thr=0.5):
 
     avg_dice = torch.mean(dices_per_class).item()
 
-    wandb.log({"valid/dice": avg_dice})
+    if args.wandb.use: wandb.log({"valid/dice": avg_dice})
 
     return avg_dice

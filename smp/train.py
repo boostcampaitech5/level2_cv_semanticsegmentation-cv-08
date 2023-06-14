@@ -16,35 +16,38 @@ import yaml
 from torch.utils.data import DataLoader
 
 # utils
-from datasets.train_dataset import XRayDataset
+import loss
+import datasets
 from runner.train_runner import train
 from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
 def main(args):
     # Augmentation
-    train_tf = A.Compose(
-        [
+    train_tf = A.Compose([   
+            A.CenterCrop(300, 300, p=0.5,),
             A.Resize(512, 512),
             # A.HorizontalFlip(p=0.5),
-        ]
-    )
+        ])
     valid_tf = A.Compose([A.Resize(512, 512)])
 
-    # Dataset
-    train_dataset = XRayDataset(args, is_train=True, transforms=train_tf)
-    valid_dataset = XRayDataset(args, is_train=False, transforms=valid_tf)
+    train_dataset = getattr(datasets, args.dataset.use)(args, is_train=True, transforms=None)
+    valid_dataset = getattr(datasets, args.dataset.use)(args, is_train=False, transforms=None)
 
     # Dataloader
-    train_loader = DataLoader(
+    train_loader = DataLoader( 
         dataset=train_dataset,
-        batch_size=args.batch_size,
+        batch_size=args.train.batch_size,
         shuffle=True,
-        num_workers=args.num_workers,
+        num_workers=args.train.num_workers,
         drop_last=True,
     )
     valid_loader = DataLoader(
-        dataset=valid_dataset, batch_size=2, shuffle=False, num_workers=2, drop_last=False
+        dataset=valid_dataset,
+        batch_size=args.valid.batch_size,
+        shuffle=False,
+        num_workers=args.valid.num_workers,
+        drop_last=False
     )
 
     # Model Define
@@ -55,18 +58,18 @@ def main(args):
         classes=len(CLASSES),  # model output channels (number of classes in your dataset)
     )
 
-    if args.train_continue:
+    if args.resume:
         print(f"Load {args.save_model_fname} weights")
         model.load_state_dict(
             torch.load(os.path.join(args.save_model_dir, args.save_model_fname)).state_dict()
         )
 
     # Loss function 정의
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = getattr(loss, args.loss)()
 
     # Optimizer 정의
-    optimizer = getattr(optim, args.optimizer)(
-        params=model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
+    optimizer = getattr(optim, args.optimizer.optim)(
+        params=model.parameters(), lr=args.optimizer.learning_rate, weight_decay=args.optimizer.weight_decay
     )
 
     train(args, model, train_loader, valid_loader, criterion, optimizer)
@@ -102,11 +105,12 @@ if __name__ == "__main__":
     args = check_directory(args)
 
     # wandb
-    wandb.init(
-        entity="kgw5430",
-        project="semantic-segmentation",
-        name=f"{args.model}_{args.encoder_name}_{args.model_info}",
-        config=args,
-    )
+    if args.wandb.use:
+        wandb.init(
+            entity=args.wandb.entity,
+            project=args.wandb.project,
+            name=f"{args.model}_{args.encoder_name}_{args.model_info}",
+            config=args,
+        )
 
     main(args)

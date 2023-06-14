@@ -33,13 +33,20 @@ PALETTE = [
 
 # fmt: on
 class AttributeDict(dict):
-    """
-    Can dot(.) access to members of dictionary.
-    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Recursively turn nested dicts into DotDicts
+        for key, value in self.items():
+            if type(value) is dict:
+                self[key] = AttributeDict(value)
 
+    def __setitem__(self, key, item):
+        if type(item) is dict:
+            item = AttributeDict(item)
+        super().__setitem__(key, item)
+
+    __setattr__ = __setitem__
     __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
 
 
 def set_seed(seed):
@@ -57,10 +64,13 @@ def check_directory(args):
     num_dir = len(glob(f"{_dir}*"))
     now_dir = f"{_dir}_{num_dir}"
 
-    if args.inference or (os.path.isdir(now_dir) and args.train_continue == True):
-        now_dir = f"{_dir}_{num_dir-1}"
+    if args.inference or (os.path.isdir(now_dir) and args.resume == True):
+        if args.test_model_dir_num is not None:
+            now_dir = f"{_dir}_{args.test_model_dir_num}"
+        else:
+            now_dir = f"{_dir}_{num_dir-1}"
     else:
-        if os.path.isdir(_dir) and args.train_continue == False:
+        if os.path.isdir(_dir) and args.resume == False:
             now_dir = f"{_dir}_{num_dir+1}"
             os.makedirs(now_dir)
         else:
@@ -75,17 +85,6 @@ def check_directory(args):
     print(f"save model directory : {now_dir}")
 
     return args
-
-
-def dice_coef(y_true, y_pred):
-    y_true_f = y_true.flatten(2)
-    y_pred_f = y_pred.flatten(2)
-    intersection = torch.sum(y_true_f * y_pred_f, -1)
-
-    eps = 0.0001
-    return (
-        (2.0 * intersection + eps) / (torch.sum(y_true_f, -1) + torch.sum(y_pred_f, -1) + eps)
-    ).cpu()
 
 
 # utility function
