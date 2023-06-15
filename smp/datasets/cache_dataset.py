@@ -14,14 +14,14 @@ class CacheDataset(Dataset):
         self.args = args
         self.is_train = is_train
         self.transforms = transforms
-        
+
         if self.is_train:
-            self.data_dir = os.path.join(args.dataset.CacheDataset.cache_dir, 'train')
-            self._filename = glob(os.path.join(self.data_dir, '*.pkl'))
+            self.data_dir = os.path.join(args.dataset.CacheDataset.cache_dir, "train")
+            self._filename = glob(os.path.join(self.data_dir, "*.pkl"))
         else:
-            self.data_dir = os.path.join(args.dataset.CacheDataset.cache_dir, 'valid')
-            self._filename = glob(os.path.join(self.data_dir, '*.pkl'))
-    
+            self.data_dir = os.path.join(args.dataset.CacheDataset.cache_dir, "valid")
+            self._filename = glob(os.path.join(self.data_dir, "*.pkl"))
+
     def __len__(self):
         return len(self._filename)
 
@@ -50,5 +50,3 @@ class CacheDataset(Dataset):
             return image, label
 
         return image, label
-
-

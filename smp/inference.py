@@ -3,9 +3,10 @@ import os
 from argparse import ArgumentParser
 from glob import glob
 
+import albumentations as A
+
 # external library
 import pandas as pd
-import albumentations as A
 import segmentation_models_pytorch as smp
 
 # torch
@@ -15,8 +16,8 @@ from torch.utils.data import DataLoader
 
 # utils
 import models
-from runner.test_runner import test
 from datasets.test_dataset import XRayInferenceDataset
+from runner.test_runner import test
 from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
@@ -31,7 +32,7 @@ def main(args):
         )
     else:
         model = getattr(models, args.model.pytorch.architectures)(len(CLASSES))
-        
+
     # Load Model
     model.load_state_dict(torch.load(os.path.join(args.save_model_dir, args.save_model_fname)))
 
@@ -39,10 +40,9 @@ def main(args):
     pngs = glob(os.path.join(args.test_image_dir, "*", "*.png"))
 
     # Augmentation
-    test_tf = A.Compose([
-        getattr(A, aug["type"])(**aug["parameters"])
-        for aug in args.test.augmentation
-    ])
+    test_tf = A.Compose(
+        [getattr(A, aug["type"])(**aug["parameters"]) for aug in args.test.augmentation]
+    )
     # Dataset
     test_dataset = XRayInferenceDataset(args, pngs, transforms=test_tf)
 

@@ -52,10 +52,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 with torch.cuda.amp.autocast():
                     images, masks = images.cuda(), masks.cuda()
                     outputs = model(images)
-                    
+
                     if isinstance(outputs, collections.OrderedDict):
                         outputs = outputs["out"]
-                        
+
                     if config.model == "hrnet":
                         output_h, output_w = outputs.size(-2), outputs.size(-1)
                         mask_h, mask_w = masks.size(-2), masks.size(-1)
@@ -63,7 +63,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                         # restore original size
                         if output_h != mask_h or output_w != mask_w:
                             outputs = F.interpolate(outputs, size=(mask_h, mask_w), mode="bilinear")
-                            
+
                     loss = criterion(outputs, masks)
                 scaler.scale(loss).backward()
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
@@ -73,10 +73,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
             else:
                 images, masks = images.cuda(), masks.cuda()
                 outputs = model(images)
-                
+
                 if isinstance(outputs, collections.OrderedDict):
                     outputs = outputs["out"]
-                    
+
                 if config.model == "hrnet":
                     output_h, output_w = outputs.size(-2), outputs.size(-1)
                     mask_h, mask_w = masks.size(-2), masks.size(-1)
@@ -100,10 +100,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 )
                 if config.wandb.use_wandb:
                     wandb.log({"train/loss": loss.item()})
-                    
+
         if (epoch + 1) % config.val_every == 0:
             dice = valid(config, epoch + 1, model, val_loader, criterion)
-            
+
             if config.scheduler.type == "ReduceLROnPlateau":
                 lr_scheduler.step(dice)
             else:
@@ -120,7 +120,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 if patience >= patience_limit:
                     print(f"over {patience_limit}, Early Stopping....")
                     break
-                
+
         ed = time.time()
         torch.save(model.state_dict(), os.path.join(config.model_dir, "last.pt"))
         print(f"Epoch {epoch} : {(ed-st)} s")

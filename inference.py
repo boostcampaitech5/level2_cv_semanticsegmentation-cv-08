@@ -4,12 +4,13 @@ import os
 
 # external library
 import pandas as pd
-import augmentations
 import segmentation_models_pytorch as smp
 
 # torch
 import torch
 from torch.utils.data import DataLoader
+
+import augmentations
 
 # utils
 import models

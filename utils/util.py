@@ -89,6 +89,7 @@ def read_json(fname):
     with fname.open("rt") as handle:
         return json.load(handle, object_hook=EasyDict)
 
+
 class AttributeDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

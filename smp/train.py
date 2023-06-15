@@ -1,7 +1,7 @@
 # python native
 import os
-from functools import partial
 from argparse import ArgumentParser
+from functools import partial
 
 import albumentations as A
 import segmentation_models_pytorch as smp
@@ -20,21 +20,18 @@ import datasets
 # utils
 import loss
 import models
-import datasets
 from runner.train_runner import train
 from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
 def main(args):
     # Augmentation
-    train_tf = A.Compose([
-        getattr(A, aug["type"])(**aug["parameters"])
-        for aug in args.train.augmentation
-    ])
-    valid_tf = A.Compose([
-        getattr(A, aug["type"])(**aug["parameters"])
-        for aug in args.valid.augmentation
-    ])
+    train_tf = A.Compose(
+        [getattr(A, aug["type"])(**aug["parameters"]) for aug in args.train.augmentation]
+    )
+    valid_tf = A.Compose(
+        [getattr(A, aug["type"])(**aug["parameters"]) for aug in args.valid.augmentation]
+    )
 
     train_dataset = getattr(datasets, args.dataset.use)(args, is_train=True, transforms=train_tf)
     valid_dataset = getattr(datasets, args.dataset.use)(args, is_train=False, transforms=valid_tf)
@@ -81,7 +78,7 @@ def main(args):
         lr=args.optimizer.learning_rate,
         weight_decay=args.optimizer.weight_decay,
     )
-    
+
     # Learning Rate Scheduler 정의
     lr_scheduler = partial(getattr(torch.optim.lr_scheduler, args.scheduler.type))(
         optimizer, **args.scheduler.parameters
