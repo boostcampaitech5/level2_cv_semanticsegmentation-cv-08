@@ -19,8 +19,8 @@ def load_local_model():
 
 
 def load_dataset():
-    tf = getattr(augmentations, state.config.valid_augmentations.name)(
-        **state.config.valid_augmentations.parameters
+    tf = getattr(augmentations, state.config.valid.augmentations.name)(
+        **state.config.valid.augmentations.parameters
     )
     valid_dataset = XRayDatasetV2(state.config, is_train=False, transforms=tf)
     state.valid_dataset = valid_dataset
@@ -60,7 +60,7 @@ def visualize(idx):
     col1, col2, col3, col4, col5 = st.columns([0.2, 0.2, 0.2, 0.2, 0.2])
 
     img_fname = state.prediction_cache[idx]["filename"]
-    image = cv2.imread(os.path.join(state.config.image_root, f"{img_fname}.png"))
+    image = cv2.imread(os.path.join(state.config.image_dir, f"{img_fname}.png"))
     image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
 
     gt = state.prediction_cache[idx]["label"]
