@@ -24,6 +24,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
         f"epochs\t: {config.epochs}\n"
         f"batch size : {config.train.batch_size}\n"
         f"criterion : {config.criterion}\n"
+        f"scheduler : {config.scheduler.type}\n"
         f"fp16\t: {config.fp16}\n"
         f"Gradient Accumulation Step : {config.accumulation_step}\n",
     )
