@@ -40,6 +40,7 @@ class AdjustContrast:
             1: original
             2: increase the contrast by a factor of 2
     """
+
     def __init__(self, resize, contrast_factor):
         self.contrast_factor = contrast_factor
         self.resize = Resize(resize, resize, p=1)
@@ -53,8 +54,8 @@ class AdjustContrast:
         
         image = transform.ToPILImage()((image*255).astype(np.uint8))
         image = transform.functional.adjust_contrast(image, self.contrast_factor)
-        image = np.asarray(image) / 255.
-        
+        image = np.asarray(image) / 255.0
+
         image = self.resize(image=image)
 
         if return_mask:

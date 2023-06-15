@@ -2,12 +2,12 @@ import json
 import os
 import sys
 
+import albumentations as A
 import cv2
 import numpy as np
 import torch
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
-import albumentations as A
 
 sys.path.append("..")
 from utils import CLASS2IND, CLASSES
