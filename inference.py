@@ -4,14 +4,15 @@ import os
 
 # external library
 import pandas as pd
+import augmentations
+import segmentation_models_pytorch as smp
 
 # torch
 import torch
 from torch.utils.data import DataLoader
 
-import augmentations
-
 # utils
+import models
 from datasets import XRayInferenceDataset
 from runner import test
 from utils import read_json
@@ -19,7 +20,17 @@ from utils import read_json
 
 def main(config):
     # Load Model
-    model = torch.load(os.path.normpath(config.inference_model_dir))
+    if config.smp.use_smp:
+        model = getattr(smp, config.smp.model)(
+            encoder_name=config.smp.encoder_name,
+            encoder_weights=config.smp.encoder_weights,
+            in_channels=3,
+            classes=config.num_classes,
+        )
+    else:
+        model = getattr(models, config.model)(config.num_classes)
+
+    model.load_state_dict(torch.load(os.path.normpath(config.inference_model_dir)))
 
     # Augmentation
     tf = getattr(augmentations, config.test_augmentations.name)(

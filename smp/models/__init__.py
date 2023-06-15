@@ -7,9 +7,9 @@ __all__ = [
     "fcn_resnet50",
     "fcn_resnet101",
     "fcn32",
+    "fcn8",
     "deeplabv3_resnet50",
     "deeplabv3_resnet101",
-    "fcn8",
     "deconvnet",
     "hrnet",
 ]

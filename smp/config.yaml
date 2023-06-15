@@ -1,7 +1,9 @@
+# set image size
+image_size: &image_size 512
+
 # set dir or path
 dataset:
   use: "Hdf5Dataset"
-
   XRayDataset:
     image_dir: "/opt/ml/input/data/train/DCM"
     label_dir: "/opt/ml/input/data/train/outputs_json"
@@ -9,37 +11,72 @@ dataset:
     image_dir: "/opt/ml/input/data/train/DCM"
     label_dir: "/opt/ml/input/data/train/outputs_json"
   CacheDataset:
-    cache_dir: "/opt/ml/input/data_cache_1024"
+    cache_dir: "/opt/ml/input/cache_data_512"
   Hdf5Dataset:
-    hdf5_dir: "/opt/ml/input/data_hdf5_1024"
+    hdf5_dir: "/opt/ml/input/hdf5_data_512"
 
 test_image_dir: "/opt/ml/input/data/test/DCM"
 save_model_dir: "/opt/ml/input/results"
-test_model_dir_num: null # 저장된 모델 dir의 번호를 명시적으로 선언 (inference 할 때 사용)
+resume_model_dir: False
+inference_model_dir: "/opt/ml/input/results/hrnet_512_0"
 
 # set model
-model: "UnetPlusPlus"
-encoder_name: "resnet50"
-encoder_weights: "imagenet"
-model_info: "ValidCheck"
-resume: False
+model: 
+  use: "pytorch"
+  smp:
+    architectures: "UnetPlusPlus"
+    encoder_name: "inceptionv4"
+    encoder_weights: "imagenet"
+    model_info: *image_size
+  pytorch:
+    architectures: "hrnet"
+    model_info: *image_size
 
 # set hyperparameter
 seed: 42
 epochs: 500
 train:
+  batch_size: 8
+  num_workers: 4
+  augmentation:
+    - type: "Resize"
+      parameters:
+        height: *image_size
+        width: *image_size
+        p: 1.0
+    # - type: "HorizontalFlip"
+    #   parameters:
+    #     p: 0.5
+valid:
   batch_size: 4
   num_workers: 2
-valid:
-  batch_size: 2
-  num_workers: 2
+  augmentation:
+    - type: "Resize"
+      parameters:
+        height: *image_size
+        width: *image_size
+        p: 1.0
 test:
   batch_size: 1
   num_workers: 8
+  augmentation:
+    - type: "Resize"
+      parameters:
+        height: *image_size
+        width: *image_size
+        p: 1.0
+
 optimizer:
   optim: "Adam"
   learning_rate: 0.0001   # 1e-4
   weight_decay: 0.000001  # 1e-6
+scheduler:
+  type: "ReduceLROnPlateau"
+  parameters:
+    mode: "max"
+    factor: 0.5
+    patience: 50
+
 loss: "BCEWithLogitsLoss"
 fp16: True
 
@@ -50,5 +87,5 @@ wandb:
   project: "semantic-segmentation"
   name: "base"
 log_step: 20
-val_every: 5
-patience_limit: 5
+val_every: 1
+patience_limit: 200

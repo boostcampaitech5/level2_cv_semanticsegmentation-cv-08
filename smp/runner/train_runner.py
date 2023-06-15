@@ -15,13 +15,13 @@ from loss.metric import dice_coef
 from utils.util import CLASSES, set_seed
 
 
-def train(args, model, data_loader, val_loader, criterion, optimizer):
+def train(args, model, data_loader, val_loader, criterion, optimizer, lr_scheduler):
     print(f"Start training..")
     set_seed(args.seed)
 
     # Early Stop
     best_dice = 0.0
-    float("inf")
+    best_epoch = 0
     patience_limit = args.patience_limit
     patience = 0
 
@@ -42,6 +42,14 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
 
                     # inference
                     outputs = model(images)
+                    
+                    if args.model.use == "pytorch" and args.model.pytorch.architectures == "hrnet":
+                        output_h, output_w = outputs.size(-2), outputs.size(-1)
+                        mask_h, mask_w = masks.size(-2), masks.size(-1)
+
+                        # restore original size
+                        if output_h != mask_h or output_w != mask_w:
+                            outputs = F.interpolate(outputs, size=(mask_h, mask_w), mode="bilinear")                        
 
                     # loss 계산
                     loss = criterion(outputs, masks)
@@ -64,6 +72,14 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
                 # inference
                 outputs = model(images)
 
+                if args.model.use == "pytorch" and args.model.pytorch.architectures == "hrnet":
+                    output_h, output_w = outputs.size(-2), outputs.size(-1)
+                    mask_h, mask_w = masks.size(-2), masks.size(-1)
+
+                    # restore original size
+                    if output_h != mask_h or output_w != mask_w:
+                        outputs = F.interpolate(outputs, size=(mask_h, mask_w), mode="bilinear")  
+                
                 # loss 계산
                 loss = criterion(outputs, masks)
                 optimizer.zero_grad()
@@ -85,22 +101,29 @@ def train(args, model, data_loader, val_loader, criterion, optimizer):
         # validation 주기에 따른 loss 출력 및 best model 저장
         if (epoch + 1) % args.val_every == 0:
             dice = valid(args, epoch + 1, model, val_loader, criterion)
+            
+            if args.scheduler.type == "ReduceLROnPlateau":
+                lr_scheduler.step(dice)
+            else:
+                lr_scheduler.step()
 
             if best_dice < dice:
                 print(f"\nBest performance at epoch: {epoch + 1}, {best_dice:.6f} -> {dice:.6f}")
                 print(f"Save model in {args.save_model_dir}")
                 best_dice = dice
+                best_epoch = epoch + 1
                 patience = 0
-                torch.save(model, os.path.join(args.save_model_dir, args.save_model_fname))
+                torch.save(model.state_dict(), os.path.join(args.save_model_dir, args.save_model_fname))
             elif dice > 0.1:  # 상승하기 시작하면 count
                 patience += 1
                 if patience >= patience_limit:
+                    print(f"\nBest performance at epoch: {best_epoch}, {best_dice:.6f}")
+                    print(f"Save model in {args.save_model_dir}")
                     break
 
         if args.wandb.use:
             wandb.log({"epoch": epoch})
-
-
+        
 def valid(args, epoch, model, data_loader, criterion, thr=0.5):
     print(f"Start validation #{epoch:2d}")
     set_seed(args.seed)

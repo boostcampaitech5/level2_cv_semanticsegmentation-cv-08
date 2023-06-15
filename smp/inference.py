@@ -4,8 +4,9 @@ from argparse import ArgumentParser
 from glob import glob
 
 # external library
-import albumentations as A
 import pandas as pd
+import albumentations as A
+import segmentation_models_pytorch as smp
 
 # torch
 import torch
@@ -13,23 +14,37 @@ import yaml
 from torch.utils.data import DataLoader
 
 # utils
-from datasets.test_dataset import XRayInferenceDataset
+import models
 from runner.test_runner import test
-from utils.util import AttributeDict, check_directory, set_seed
+from datasets.test_dataset import XRayInferenceDataset
+from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
 def main(args):
+    # Model Define
+    if args.model.use == "smp":
+        model = getattr(smp, args.model.smp.architectures)(
+            encoder_name=args.encoder_name,  # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
+            encoder_weights=args.encoder_weights,  # use `imagenet` pre-trained weights for encoder initialization
+            in_channels=3,  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
+            classes=len(CLASSES),  # model output channels (number of classes in your dataset)
+        )
+    else:
+        model = getattr(models, args.model.pytorch.architectures)(len(CLASSES))
+        
     # Load Model
-    model = torch.load(os.path.join(args.save_model_dir, args.save_model_fname))
+    model.load_state_dict(torch.load(os.path.join(args.save_model_dir, args.save_model_fname)))
 
     # Load Data
     pngs = glob(os.path.join(args.test_image_dir, "*", "*.png"))
 
     # Augmentation
-    tf = A.Resize(512, 512)
-
+    test_tf = A.Compose([
+        getattr(A, aug["type"])(**aug["parameters"])
+        for aug in args.test.augmentation
+    ])
     # Dataset
-    test_dataset = XRayInferenceDataset(args, pngs, transforms=tf)
+    test_dataset = XRayInferenceDataset(args, pngs, transforms=test_tf)
 
     # Dataloader
     test_loader = DataLoader(

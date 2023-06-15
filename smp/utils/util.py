@@ -31,7 +31,6 @@ PALETTE = [
 ]
 
 
-# fmt: on
 class AttributeDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,29 +59,35 @@ def set_seed(seed):
 
 
 def check_directory(args):
-    _dir = os.path.join(args.save_model_dir, f"{args.model}_{args.encoder_name}_{args.model_info}")
+    if args.model.use == "smp":
+        _dir = os.path.join(args.save_model_dir, f"{args.model.smp.architectures}_{args.model.smp.encoder_name}_{args.model.smp.model_info}")
+    else:
+        _dir = os.path.join(args.save_model_dir, f"{args.model.pytorch.architectures}_{args.model.pytorch.model_info}")
+    
     num_dir = len(glob(f"{_dir}*"))
     now_dir = f"{_dir}_{num_dir}"
 
-    if args.inference or (os.path.isdir(now_dir) and args.resume == True):
-        if args.test_model_dir_num is not None:
-            now_dir = f"{_dir}_{args.test_model_dir_num}"
-        else:
-            now_dir = f"{_dir}_{num_dir-1}"
+    if args.inference:
+        assert os.path.isdir(args.inference_model_dir), f"please check inference directory : {args.inference_model_dir}"
+        now_dir = args.inference_model_dir
+        print(f"inference model directory : {now_dir}")
+    elif args.resume_model_dir:
+        assert os.path.isdir(args.resume_model_dir), f"please check resume train model directory : {args.resume_model_dir}"
+        now_dir = args.resume_model_dir
+        print(f"resume model directory : {now_dir}")
+    elif os.path.isdir(_dir):
+        now_dir = f"{_dir}_{num_dir+1}"
+        os.makedirs(now_dir)
+        print(f"save model directory : {now_dir}")
     else:
-        if os.path.isdir(_dir) and args.resume == False:
-            now_dir = f"{_dir}_{num_dir+1}"
-            os.makedirs(now_dir)
-        else:
-            now_dir = f"{_dir}_{num_dir}"
-            os.makedirs(now_dir)
+        now_dir = f"{_dir}_{num_dir}"
+        os.makedirs(now_dir)
+        print(f"save model directory : {now_dir}")
 
     args.save_model_dir = now_dir
-    args.save_model_fname = f"{args.model}_{args.encoder_name}_best.pt"
+    args.save_model_fname = "best.pt"
     args.save_submit_dir = now_dir
-    args.save_submit_fname = f"{args.model}_{args.encoder_name}_best.csv"
-
-    print(f"save model directory : {now_dir}")
+    args.save_submit_fname = "output.csv"
 
     return args
 

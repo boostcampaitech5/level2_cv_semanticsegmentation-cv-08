@@ -1,5 +1,6 @@
 # python native
 import os
+from functools import partial
 from argparse import ArgumentParser
 
 import albumentations as A
@@ -18,27 +19,25 @@ import datasets
 
 # utils
 import loss
+import models
+import datasets
 from runner.train_runner import train
 from utils.util import CLASSES, AttributeDict, check_directory, set_seed
 
 
 def main(args):
     # Augmentation
-    train_tf = A.Compose(
-        [
-            A.CenterCrop(
-                300,
-                300,
-                p=0.5,
-            ),
-            A.Resize(512, 512),
-            # A.HorizontalFlip(p=0.5),
-        ]
-    )
-    A.Compose([A.Resize(512, 512)])
+    train_tf = A.Compose([
+        getattr(A, aug["type"])(**aug["parameters"])
+        for aug in args.train.augmentation
+    ])
+    valid_tf = A.Compose([
+        getattr(A, aug["type"])(**aug["parameters"])
+        for aug in args.valid.augmentation
+    ])
 
-    train_dataset = getattr(datasets, args.dataset.use)(args, is_train=True, transforms=None)
-    valid_dataset = getattr(datasets, args.dataset.use)(args, is_train=False, transforms=None)
+    train_dataset = getattr(datasets, args.dataset.use)(args, is_train=True, transforms=train_tf)
+    valid_dataset = getattr(datasets, args.dataset.use)(args, is_train=False, transforms=valid_tf)
 
     # Dataloader
     train_loader = DataLoader(
@@ -57,14 +56,17 @@ def main(args):
     )
 
     # Model Define
-    model = getattr(smp, args.model)(
-        encoder_name=args.encoder_name,  # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
-        encoder_weights=args.encoder_weights,  # use `imagenet` pre-trained weights for encoder initialization
-        in_channels=3,  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
-        classes=len(CLASSES),  # model output channels (number of classes in your dataset)
-    )
+    if args.model.use == "smp":
+        model = getattr(smp, args.model.smp.architectures)(
+            encoder_name=args.encoder_name,  # choose encoder, e.g. mobilenet_v2 or efficientnet-b7
+            encoder_weights=args.encoder_weights,  # use `imagenet` pre-trained weights for encoder initialization
+            in_channels=3,  # model input channels (1 for gray-scale images, 3 for RGB, etc.)
+            classes=len(CLASSES),  # model output channels (number of classes in your dataset)
+        )
+    else:
+        model = getattr(models, args.model.pytorch.architectures)(len(CLASSES))
 
-    if args.resume:
+    if args.resume_model_dir:
         print(f"Load {args.save_model_fname} weights")
         model.load_state_dict(
             torch.load(os.path.join(args.save_model_dir, args.save_model_fname)).state_dict()
@@ -79,8 +81,13 @@ def main(args):
         lr=args.optimizer.learning_rate,
         weight_decay=args.optimizer.weight_decay,
     )
+    
+    # Learning Rate Scheduler 정의
+    lr_scheduler = partial(getattr(torch.optim.lr_scheduler, args.scheduler.type))(
+        optimizer, **args.scheduler.parameters
+    )
 
-    train(args, model, train_loader, valid_loader, criterion, optimizer)
+    train(args, model, train_loader, valid_loader, criterion, optimizer, lr_scheduler)
 
 
 def parse_args():
