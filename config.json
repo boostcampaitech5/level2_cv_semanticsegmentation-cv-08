@@ -12,10 +12,10 @@
         }
     },
 
-    "save_model_dir": "/opt/ml/input/results/hrnet",
-    "inference_model_dir": "/opt/ml/input/results/hrnet",
+    "save_model_dir": "/opt/ml/input/results/UnetPlusPlus_resnet50",
+    "inference_model_dir": "/opt/ml/input/results/UnetPlusPlus_resnet50",
     "model_file_name": "best.pth",
-    "resume_from": false,
+    "resume_from": "/opt/ml/input/results/UnetPlusPlus_resnet50/best.pt",
 
     "dataset": "Hdf5Dataset",
 
