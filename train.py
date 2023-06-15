@@ -13,17 +13,18 @@ import datasets
 import loss
 import models
 from runner import train
-from utils import read_json
+from utils import CLASSES, read_json
 
 
 def main(config):
-    if not os.path.exists(config.model_dir):
-        os.makedirs(config.model_dir)
+    os.makedirs(config.save_model_dir, exist_ok=True)
+    print(f"Save Model Directory : {config.save_model_dir}")
 
-    with open(os.path.join(config.model_dir, "config.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(config.save_model_dir, "config.json"), "w", encoding="utf-8") as f:
         json.dump(vars(config), f, ensure_ascii=False, indent=4)
 
-    if config.wandb.use_wandb:
+    # Wandb Connect
+    if config.wandb.use:
         wandb.init(
             entity=config.wandb.entity,
             project=config.wandb.project,
@@ -31,51 +32,62 @@ def main(config):
             config=config,
         )
 
-    if config.resume_from:
-        model = torch.load(config.resume_from)
+    # Model Define
+    if config.base.use == "smp":
+        model = getattr(smp, config.base.smp.model)(
+            encoder_name=config.base.smp.encoder_name,
+            encoder_weights=config.base.smp.encoder_weights,
+            in_channels=3,
+            classes=len(CLASSES),
+        )
     else:
-        if config.smp.use_smp:
-            model = getattr(smp, config.smp.model)(
-                encoder_name=config.smp.encoder_name,
-                encoder_weights=config.smp.encoder_weights,
-                in_channels=3,
-                classes=config.num_classes,
-            )
-        else:
-            model = getattr(models, config.model)(config.num_classes)
-    model.cuda()
+        model = getattr(models, config.base.pytorch.model)(len(CLASSES))
 
+    if config.resume_from:
+        print(f"Load {config.resume_from}")
+        if os.path.splitext(config.resume_from)[1] == ".pt":
+            model = torch.load(config.resume_from)
+        else:
+            model.load_state_dict(torch.load(os.path.join(config.save_model_dir, config.model_file_name)).state_dict())
+
+    # Optimizer 정의
     optimizer = partial(getattr(torch.optim, config.optimizer.type))
     optimizer = optimizer(model.parameters(), **config.optimizer.parameters)
-    criterion = getattr(loss, config.loss)()
+    
+    # Loss function 정의
+    criterion = getattr(loss, config.criterion)()
+    
+    # Learning Rate Scheduler 정의
     lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
         optimizer, **config.scheduler.parameters
     )
 
-    train_aug = getattr(augmentations, config.train_augmentations.name)(
-        **config.train_augmentations.parameters
+    # Augmentation 정의
+    train_aug = getattr(augmentations, config.train.augmentations.name)(
+        **config.train.augmentations.parameters
     )
-    valid_aug = getattr(augmentations, config.valid_augmentations.name)(
-        **config.valid_augmentations.parameters
+    valid_aug = getattr(augmentations, config.valid.augmentations.name)(
+        **config.valid.augmentations.parameters
     )
 
     train_dataset = getattr(datasets, config.dataset)(config, is_train=True, transforms=train_aug)
     train_loader = DataLoader(
         dataset=train_dataset,
-        batch_size=config.train_batch_size,
+        batch_size=config.train.batch_size,
         shuffle=True,
-        num_workers=config.train_num_workers,
+        num_workers=config.train.num_workers,
         drop_last=True,
     )
 
     valid_dataset = getattr(datasets, config.dataset)(config, is_train=False, transforms=valid_aug)
     valid_loader = DataLoader(
         dataset=valid_dataset,
-        batch_size=config.valid_batch_size,
+        batch_size=config.valid.batch_size,
         shuffle=False,
-        num_workers=config.valid_num_workers,
+        num_workers=config.valid.num_workers,
         drop_last=False,
     )
+    
     train(config, model, train_loader, valid_loader, criterion, optimizer, lr_scheduler)
 
 

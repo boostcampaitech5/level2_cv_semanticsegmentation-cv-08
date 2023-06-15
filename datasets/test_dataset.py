@@ -4,13 +4,15 @@ import os
 # external library
 import cv2
 import numpy as np
+
+# torch
 import torch
 from torch.utils.data import Dataset
 
 
 class XRayInferenceDataset(Dataset):
     def __init__(self, config, transforms=None):
-        self.IMAGE_ROOT = config.test_image_root
+        self.IMAGE_ROOT = config.test_image_dir
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=self.IMAGE_ROOT)
             for root, _dirs, files in os.walk(self.IMAGE_ROOT)
@@ -41,5 +43,7 @@ class XRayInferenceDataset(Dataset):
 
         # to tenser will be done later
         image = image.transpose(2, 0, 1)  # make channel first
+        
         image = torch.from_numpy(image).float()
+        
         return image, image_name

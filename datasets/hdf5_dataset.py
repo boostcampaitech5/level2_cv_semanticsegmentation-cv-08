@@ -24,6 +24,8 @@ class Hdf5Dataset(Dataset):
         else:
             self.data_dir = config.valid_hdf5_data_dir
             self._filename = glob(os.path.join(self.data_dir, "*.h5py"))[0]
+        
+        assert len(self._filename) != 0, "Please check hdf5 data directory !"
 
     def __len__(self):
         with h5py.File(self._filename, "r") as hf:
@@ -44,11 +46,11 @@ class Hdf5Dataset(Dataset):
             image = image.transpose(1, 2, 0)
             label = label.transpose(1, 2, 0)
 
-            inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
+            inputs = {"image": image, "mask": label}
             result = self.transforms(**inputs)
 
             image = result["image"]
-            label = result["mask"] if self.is_train else label
+            label = result["mask"]
 
             # (h, w, c) -> (c, h ,w)
             image = image.transpose(2, 0, 1)
