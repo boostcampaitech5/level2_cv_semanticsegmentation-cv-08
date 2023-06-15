@@ -1,31 +1,70 @@
 {
-    "model": "fcn_resnet50",
-    "smp": {
-        "use_smp": true,
-        "model": "Unet",
-        "encoder_name": "timm-regnety_040",
-        "encoder_weights": "imagenet"
+    "base": {
+        "use": "smp",
+
+        "pytorch": {
+            "model": "hrnet"
+        },
+        "smp": {
+            "model": "UnetPlusPlus",
+            "encoder_name": "resnet50",
+            "encoder_weights": "imagenet"
+        }
     },
-    "image_root": "/opt/ml/data/train/DCM",
-    "label_root": "/opt/ml/data/train/outputs_json",
 
-    "train_json_path": "/opt/ml/data/train_split.json",
-    "valid_json_path": "/opt/ml/data/valid_split.json",
+    "save_model_dir": "/opt/ml/input/results/UnetPlusPlus_resnet50",
+    "inference_model_dir": "/opt/ml/input/results/UnetPlusPlus_resnet50",
+    "model_file_name": "best.pth",
+    "resume_from": "/opt/ml/input/results/UnetPlusPlus_resnet50/best.pt",
 
-    "train_cache_data_dir": "/opt/ml/cache_data_512_norm/train",
-    "valid_cache_data_dir": "/opt/ml/cache_data_512_norm/valid",
-
-    "train_hdf5_data_dir": "/opt/ml/hdf5_data_512/train",
-    "valid_hdf5_data_dir": "/opt/ml/hdf5_data_512/valid",
-
-    "test_image_root": "/opt/ml/data/test/DCM",
     "dataset": "Hdf5Dataset",
-    "num_classes": 29,
-    "loss": "BCEWithLogitsLoss",
-    "epochs": 100,
-    "train_batch_size": 8,
-    "valid_batch_size": 4,
-    "test_batch_size": 2,
+
+    "image_dir": "/opt/ml/input/data/train/DCM",
+    "label_dir": "/opt/ml/input/data/train/outputs_json",
+    "test_image_dir": "/opt/ml/input/data/test/DCM",
+
+    "train_json_path": "/opt/ml/input/data/train_split.json",
+    "valid_json_path": "/opt/ml/input/data/valid_split.json",
+
+    "train_cache_data_dir": "/opt/ml/input/cache_data_512/train",
+    "valid_cache_data_dir": "/opt/ml/input/cache_data_512/valid",
+
+    "train_hdf5_data_dir": "/opt/ml/input/hdf5_data_512/train",
+    "valid_hdf5_data_dir": "/opt/ml/input/hdf5_data_512/valid",
+
+    "epochs": 1,
+
+    "train": {
+        "batch_size": 8,
+        "num_workers": 4,
+        "augmentations": {
+            "name": "base_augmentation",
+            "parameters": {
+                "resize": 512
+            }
+        }
+    },
+    "valid": {
+        "batch_size": 4,
+        "num_workers": 2,
+        "augmentations": {
+            "name": "base_augmentation",
+            "parameters": {
+                "resize": 512
+            }
+        }
+    },
+    "test": {
+        "batch_size": 1,
+        "num_workers": 8,
+        "augmentations": {
+            "name": "base_augmentation",
+            "parameters": {
+                "resize": 512
+            }
+        }
+    },
+
     "optimizer": {
         "type": "Adam",
         "parameters": {
@@ -33,6 +72,7 @@
             "weight_decay": 1e-06
         }
     },
+    "criterion": "BCEWithLogitsLoss",
     "scheduler": {
         "type": "MultiStepLR",
         "parameters": {
@@ -43,41 +83,17 @@
             "gamma": 0.5
         }
     },
-    "train_augmentations": {
-        "name": "base_augmentation",
-        "parameters": {
-            "resize": 512
-        }
-    },
-    "valid_augmentations": {
-        "name": "base_augmentation",
-        "parameters": {
-            "resize": 512
-        }
-    },
-    "test_augmentations": {
-        "name": "base_augmentation",
-        "parameters": {
-            "resize": 512
-        }
-    },
-    "model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet_regnety-040_512_epoch-15-start",
-    "model_file_name": "best.pt",
+
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
     "patience_limit": 20,
-    "fp16": false,
     "accumulation_step": 1,
+    "fp16": true,
     "wandb": {
-        "use_wandb": true,
+        "use": false,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
         "run_name": "unet_regnety-040_512_epoch-15-start"
-    },
-    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet_regnety-040_512/last.pt",
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/deeplabv3_resnet50_512/best_94-epoch_0.945642.pt",
-    "train_num_workers": 4,
-    "valid_num_workers": 2,
-    "test_num_workers": 2
+    }    
 }

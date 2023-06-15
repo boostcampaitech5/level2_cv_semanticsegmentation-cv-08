@@ -1,39 +1,34 @@
+# python native
 import json
 import os
-import sys
+from glob import glob
 
+# external library
 import cv2
 import numpy as np
+
+# torch
 import torch
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
 
-sys.path.append("..")
-from utils import CLASS2IND, CLASSES
+# utils
+from utils.util import CLASS2IND, CLASSES
 
 
 class XRayDataset(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
         self.config = config
-        self.jsons = {
-            os.path.relpath(os.path.join(root, fname), start=config.label_root)
-            for root, _dirs, files in os.walk(config.label_root)
-            for fname in files
-            if os.path.splitext(fname)[1].lower() == ".json"
-        }
 
-        self.pngs = {
-            os.path.relpath(os.path.join(root, fname), start=config.image_root)
-            for root, _dirs, files in os.walk(config.image_root)
-            for fname in files
-            if os.path.splitext(fname)[1].lower() == ".png"
-        }
+        # Load Data
+        pngs = glob(os.path.join(config.image_dir, "*", "*.png"))
+        npys = glob(os.path.join(config.label_dir, "*", "*.json"))
 
-        self.pngs = sorted(self.pngs)
-        self.jsons = sorted(self.jsons)
+        self.pngs = sorted(pngs)
+        self.npys = sorted(npys)
 
         _filenames = np.array(self.pngs)
-        _labelnames = np.array(self.jsons)
+        _labelnames = np.array(self.npys)
 
         # split train-valid
         # 한 폴더 안에 한 인물의 양손에 대한 `.dcm` 파일이 존재하기 때문에
@@ -70,7 +65,6 @@ class XRayDataset(Dataset):
         self.filenames = filenames
         self.labelnames = labelnames
         self.is_train = is_train
-
         self.transforms = transforms
 
     def __len__(self):
@@ -78,13 +72,13 @@ class XRayDataset(Dataset):
 
     def __getitem__(self, item):
         image_name = self.filenames[item]
-        image_path = os.path.join(self.config["image_root"], image_name)
+        image_path = os.path.join(self.config.image_dir, image_name)
 
         image = cv2.imread(image_path)
         image = image / 255.0
 
         label_name = self.labelnames[item]
-        label_path = os.path.join(self.config["label_root"], label_name)
+        label_path = os.path.join(self.config.label_dir, label_name)
 
         # process a label of shape (H, W, NC)
         label_shape = tuple(image.shape[:2]) + (len(CLASSES),)
@@ -122,6 +116,7 @@ class XRayDataset(Dataset):
 
         image = torch.from_numpy(image).float()
         label = torch.from_numpy(label).float()
+
         return image, label
 
 
@@ -129,13 +124,14 @@ class XRayDatasetV2(Dataset):
     """Loads data paths from a json file"""
 
     def __init__(self, config, is_train=True, transforms=None):
-        self.image_root = config["image_root"]
-        self.label_root = config["label_root"]
+        self.image_dir = config.image_dir
+        self.label_dir = config.label_dir
+        self.transform = transforms
 
         if is_train:
-            self.json_path = config["train_json_path"]
+            self.json_path = config.train_json_path
         else:
-            self.json_path = config["valid_json_path"]
+            self.json_path = config.valid_json_path
 
         with open(self.json_path, "r") as f:
             _fnames = json.load(f)
@@ -146,18 +142,13 @@ class XRayDatasetV2(Dataset):
             self.ids.append(k)
             self.fnames.extend(v)
 
-        if transforms is None:
-            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
-        else:
-            self.transforms = transforms
-
     def __len__(self):
         return len(self.fnames)
 
     def __getitem__(self, idx):
         fname = self.fnames[idx]  # ex) ID002/image1661144246917
-        image_path = os.path.join(self.image_root, f"{fname}.png")
-        label_path = os.path.join(self.label_root, f"{fname}.json")
+        image_path = os.path.join(self.image_dir, f"{fname}.png")
+        label_path = os.path.join(self.label_dir, f"{fname}.json")
 
         image = cv2.imread(image_path)
         image = image / 255.0
@@ -201,22 +192,15 @@ class XRayDatasetV2(Dataset):
 class XRayDatasetFast(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
         self.config = config
-        self.npys = {
-            os.path.relpath(os.path.join(root, fname), start=config.label_root)
-            for root, _dirs, files in os.walk(config.label_root)
-            for fname in files
-            if os.path.splitext(fname)[1].lower() == ".npy"
-        }
+        self.is_train = is_train
+        self.transforms = transforms
 
-        self.pngs = {
-            os.path.relpath(os.path.join(root, fname), start=config.image_root)
-            for root, _dirs, files in os.walk(config.image_root)
-            for fname in files
-            if os.path.splitext(fname)[1].lower() == ".png"
-        }
+        # Load Data
+        pngs = glob(os.path.join(config.image_dir, "*", "*.png"))
+        npys = glob(os.path.join(config.label_dir, "*", "*.npy"))
 
-        self.pngs = sorted(self.pngs)
-        self.npys = sorted(self.npys)
+        self.pngs = sorted(pngs)
+        self.npys = sorted(npys)
 
         _filenames = np.array(self.pngs)
         _labelnames = np.array(self.npys)
@@ -238,7 +222,7 @@ class XRayDatasetFast(Dataset):
         filenames = []
         labelnames = []
         for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
-            if is_train:
+            if self.is_train:
                 # 0번을 validation dataset으로 사용합니다.
                 if i == 0:
                     continue
@@ -255,30 +239,21 @@ class XRayDatasetFast(Dataset):
 
         self.filenames = filenames
         self.labelnames = labelnames
-        self.is_train = is_train
-
-        if transforms is None:
-            print("transforms is None")
-            print(transforms)
-            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
-        else:
-            self.transforms = transforms
 
     def __len__(self):
         return len(self.filenames)
 
     def __getitem__(self, item):
         image_name = self.filenames[item]
-        image_path = os.path.join(self.config["image_root"], image_name)
+        image_path = os.path.join(self.config.image_dir, image_name)
 
         image = cv2.imread(image_path)
         image = image / 255.0
 
         label_name = self.labelnames[item]
-        label_path = os.path.join(self.config["label_root"], label_name)
+        label_path = os.path.join(self.config.label_dir, label_name)
 
         # process a label of shape (H, W, NC)
-
         with open(label_path, "rb") as f:
             label_np = np.load(f)
             if isinstance(label_np, np.lib.npyio.NpzFile):
@@ -288,12 +263,10 @@ class XRayDatasetFast(Dataset):
         label = np.unpackbits(label).reshape(2048, 2048, 29)
 
         if self.transforms is not None:
-            # inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
             inputs = {"image": image, "mask": label}
             result = self.transforms(**inputs)
 
             image = result["image"]
-            # label = result["mask"] if self.is_train else label
             label = result["mask"]
 
         # to tenser will be done later

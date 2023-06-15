@@ -21,15 +21,15 @@ def load_local_model():
 
 
 def load_dataset():
-    tf = getattr(augmentations, state.config.test_augmentations.name)(
-        **state.config.test_augmentations.parameters
+    tf = getattr(augmentations, state.config.test.augmentations.name)(
+        **state.config.test.augmentations.parameters
     )
     test_dataset = XRayInferenceDataset(state.config, transforms=tf)
     test_loader = DataLoader(
         dataset=test_dataset,
-        batch_size=state.config.test_batch_size,
+        batch_size=state.config.test.batch_size,
         shuffle=False,
-        num_workers=state.config.test_num_workers,
+        num_workers=state.config.test.num_workers,
         drop_last=False,
     )
     state.test_loader = test_loader
@@ -67,7 +67,7 @@ def visualise():
             continue
         preds = np.stack(preds, 0)
         class_fname = state.prediction_cache["filename_and_class"][i * len(CLASSES)]
-        image = cv2.imread(os.path.join(state.config.test_image_root, class_fname.split("_")[1]))
+        image = cv2.imread(os.path.join(state.config.test_image_dir, class_fname.split("_")[1]))
         seg_map = label2rgb(preds)
         image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
         seg_map = cv2.resize(seg_map, (512, 512), interpolation=cv2.INTER_AREA)
