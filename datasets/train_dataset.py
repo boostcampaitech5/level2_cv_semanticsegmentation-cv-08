@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+import albumentations as A
 import cv2
 import numpy as np
 import torch
