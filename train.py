@@ -48,15 +48,17 @@ def main(config):
         if os.path.splitext(config.resume_from)[1] == ".pt":
             model = torch.load(config.resume_from)
         else:
-            model.load_state_dict(torch.load(os.path.join(config.save_model_dir, config.model_file_name)).state_dict())
+            model.load_state_dict(
+                torch.load(os.path.join(config.save_model_dir, config.model_file_name)).state_dict()
+            )
 
     # Optimizer 정의
     optimizer = partial(getattr(torch.optim, config.optimizer.type))
     optimizer = optimizer(model.parameters(), **config.optimizer.parameters)
-    
+
     # Loss function 정의
     criterion = getattr(loss, config.criterion)()
-    
+
     # Learning Rate Scheduler 정의
     lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
         optimizer, **config.scheduler.parameters
@@ -87,7 +89,7 @@ def main(config):
         num_workers=config.valid.num_workers,
         drop_last=False,
     )
-    
+
     train(config, model, train_loader, valid_loader, criterion, optimizer, lr_scheduler)
 
 

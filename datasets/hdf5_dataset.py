@@ -24,7 +24,7 @@ class Hdf5Dataset(Dataset):
         else:
             self.data_dir = config.valid_hdf5_data_dir
             self._filename = glob(os.path.join(self.data_dir, "*.h5py"))[0]
-        
+
         assert len(self._filename) != 0, "Please check hdf5 data directory !"
 
     def __len__(self):

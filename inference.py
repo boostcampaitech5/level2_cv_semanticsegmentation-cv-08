@@ -36,7 +36,9 @@ def main(config):
         if os.path.splitext(config.resume_from)[1] == ".pt":
             model = torch.load(config.resume_from)
     else:
-        model.load_state_dict(torch.load(os.path.join(config.save_model_dir, config.model_file_name)))
+        model.load_state_dict(
+            torch.load(os.path.join(config.save_model_dir, config.model_file_name))
+        )
 
     # Augmentation
     tf = getattr(augmentations, config.test.augmentations.name)(
@@ -76,13 +78,13 @@ def main(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument(
         "-c", "--config", default="./config.json", type=str, help="config file path (default: None)"
     )
-    
+
     args = parser.parse_args()
-    
+
     config = read_json(args.config)
-    
+
     main(config)

@@ -14,16 +14,16 @@ class CacheDataset(Dataset):
         self.config = config
         self.is_train = is_train
         self.transforms = transforms
-        
+
         if self.is_train:
             self.data_dir = config.train_cache_data_dir
-            self._filename = glob(os.path.join(self.data_dir, '*.pkl'))
+            self._filename = glob(os.path.join(self.data_dir, "*.pkl"))
         else:
             self.data_dir = config.valid_cache_data_dir
-            self._filename = glob(os.path.join(self.data_dir, '*.pkl'))
-        
+            self._filename = glob(os.path.join(self.data_dir, "*.pkl"))
+
         assert len(self._filename) != 0, "Please check cache data directory !"
-    
+
     def __len__(self):
         return len(self._filename)
 
@@ -52,5 +52,3 @@ class CacheDataset(Dataset):
             return image, label
 
         return image, label
-
-

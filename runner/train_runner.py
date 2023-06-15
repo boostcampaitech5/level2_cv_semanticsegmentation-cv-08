@@ -2,7 +2,6 @@
 import collections
 import datetime
 import os
-import sys
 import time
 
 # torch
@@ -11,7 +10,6 @@ import torch.nn.functional as F
 
 # external library
 import wandb
-from tqdm.auto import tqdm
 
 # utils
 from loss.metric import dice_coef
@@ -19,7 +17,7 @@ from utils import CLASSES, set_seed
 
 
 def train(config, model, data_loader, val_loader, criterion, optimizer, lr_scheduler):
-    model_name = config.base.smp.model if config.base.use == 'smp' else config.base.pytorch.model
+    model_name = config.base.smp.model if config.base.use == "smp" else config.base.pytorch.model
     print(
         f"Start training ...\n"
         f"model\t: {model_name if not config.resume_from else config.resume_from}\n"
@@ -42,25 +40,25 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
 
     for epoch in range(config.epochs):
         st = time.time()
-        
+
         if config.wandb.use:
             wandb.log({"epoch": epoch})
-            
+
         model.train()
-        
+
         for step, (images, masks) in enumerate(data_loader):
             if config.fp16:
                 with torch.cuda.amp.autocast():
                     # gpu 연산을 위해 device 할당
                     images, masks = images.cuda(), masks.cuda()
                     model = model.cuda()
-                    
+
                     # inference
                     outputs = model(images)
 
                     if isinstance(outputs, collections.OrderedDict):
                         outputs = outputs["out"]
-                        
+
                     if config.base.use == "pytorch" and config.base.pytorch.model == "hrnet":
                         output_h, output_w = outputs.size(-2), outputs.size(-1)
                         mask_h, mask_w = masks.size(-2), masks.size(-1)
@@ -68,12 +66,12 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                         # restore original size
                         if output_h != mask_h or output_w != mask_w:
                             outputs = F.interpolate(outputs, size=(mask_h, mask_w), mode="bilinear")
-                    
+
                     # loss 계산
                     loss = criterion(outputs, masks)
-                    
+
                 scaler.scale(loss).backward()
-                
+
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
                     scaler.step(optimizer)
                     optimizer.zero_grad()
@@ -82,13 +80,13 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 # gpu 연산을 위해 device 할당
                 images, masks = images.cuda(), masks.cuda()
                 model = model.cuda()
-                
+
                 # inference
                 outputs = model(images)
 
                 if isinstance(outputs, collections.OrderedDict):
                     outputs = outputs["out"]
-                    
+
                 if config.base.use == "pytorch" and config.base.pytorch.model == "hrnet":
                     output_h, output_w = outputs.size(-2), outputs.size(-1)
                     mask_h, mask_w = masks.size(-2), masks.size(-1)
@@ -100,7 +98,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 # loss 계산
                 loss = criterion(outputs, masks)
                 loss.backward()
-                
+
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
                     optimizer.step()
                     optimizer.zero_grad()
@@ -112,7 +110,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                     f"Step [{step+1}/{len(data_loader)}], "
                     f"Loss: {round(loss.item(),6)}"
                 )
-                
+
             if config.wandb.use:
                 wandb.log({"train/loss": loss.item()})
 
@@ -130,8 +128,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 best_dice = dice
                 best_epoch = epoch + 1
                 patience = 0
-                torch.save(model.state_dict(), os.path.join(config.save_model_dir, config.model_file_name))
-            elif dice > 0.1: # 상승하기 시작하면 count
+                torch.save(
+                    model.state_dict(), os.path.join(config.save_model_dir, config.model_file_name)
+                )
+            elif dice > 0.1:  # 상승하기 시작하면 count
                 patience += 1
                 if patience >= patience_limit:
                     print(f"Over {patience_limit}, Early Stopping ...")
@@ -140,7 +140,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
         ed = time.time()
         torch.save(model.state_dict(), os.path.join(config.save_model_dir, "last.pt"))
         print(f"Epoch {epoch} : {(ed-st)} s")
-    
+
     print(f"Done !!")
     print(f"Best performance at epoch: {best_epoch} dice: {best_dice:.6f}")
     print(f"Save model in {config.save_model_dir}")
@@ -190,7 +190,7 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
                     f"Loss: {round(loss.item(),6)}, ",
                     f"Dice: {round(torch.mean(dice).item(), 6)}",
                 )
-            
+
             if config.wandb.use:
                 wandb.log({"valid/loss": loss.item()})
 
@@ -198,7 +198,7 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
     dices_per_class = torch.mean(dices, 0)
     if config.wandb.use:
         wandb.log({c: d.item() for c, d in zip(CLASSES, dices_per_class)})
-        
+
     for idx, (c, d) in enumerate(zip(CLASSES, dices_per_class)):
         if (idx + 1) % 5 == 0:
             print(f"{c:<12}: {d.item():.6f}", end="\n")

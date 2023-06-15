@@ -1,7 +1,6 @@
 # python native
 import json
 import os
-import sys
 from glob import glob
 
 # external library
@@ -20,7 +19,7 @@ from utils.util import CLASS2IND, CLASSES
 class XRayDataset(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
         self.config = config
-        
+
         # Load Data
         pngs = glob(os.path.join(config.image_dir, "*", "*.png"))
         npys = glob(os.path.join(config.label_dir, "*", "*.json"))
@@ -117,7 +116,7 @@ class XRayDataset(Dataset):
 
         image = torch.from_numpy(image).float()
         label = torch.from_numpy(label).float()
-        
+
         return image, label
 
 
@@ -142,7 +141,6 @@ class XRayDatasetV2(Dataset):
         for k, v in _fnames.items():
             self.ids.append(k)
             self.fnames.extend(v)
-
 
     def __len__(self):
         return len(self.fnames)
