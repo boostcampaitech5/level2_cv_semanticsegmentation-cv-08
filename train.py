@@ -48,9 +48,10 @@ def main(config):
     optimizer = partial(getattr(torch.optim, config.optimizer.type))
     optimizer = optimizer(model.parameters(), **config.optimizer.parameters)
     criterion = getattr(loss, config.loss)()
-    lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
-        optimizer, **config.scheduler.parameters
-    )
+    
+    lr_scheduler = getattr(torch.optim.lr_scheduler, config.scheduler.type, None)
+    if lr_scheduler is not None:
+        lr_scheduler = partial(lr_scheduler, optimizer, **config.scheduler.parameters)
 
     train_aug = getattr(augmentations, config.train_augmentations.name)(
         **config.train_augmentations.parameters

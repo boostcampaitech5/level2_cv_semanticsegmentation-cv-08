@@ -44,7 +44,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
     for epoch in range(config.epochs):
         st = time.time()
         if config.wandb.use_wandb:
-            wandb.log({"epoch": epoch})
+            wandb.log({"epoch": epoch, "lr": optimizer.param_groups[0]['lr']})
         model.train()
 
         for step, (images, masks) in enumerate(data_loader):
@@ -85,7 +85,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
             dice = valid(config, epoch + 1, model, val_loader, criterion)
             if config.scheduler.type == "ReduceLROnPlateau":
                 lr_scheduler.step(dice)
-            else:
+            elif lr_scheduler is not None:
                 lr_scheduler.step()
 
             if best_dice <= dice:
