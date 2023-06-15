@@ -51,8 +51,8 @@ class AdjustContrast:
         if "mask" in kwargs:
             return_mask = True
             mask = kwargs["mask"]
-        
-        image = transform.ToPILImage()((image*255).astype(np.uint8))
+
+        image = transform.ToPILImage()((image * 255).astype(np.uint8))
         image = transform.functional.adjust_contrast(image, self.contrast_factor)
         image = np.asarray(image) / 255.0
 
@@ -60,9 +60,9 @@ class AdjustContrast:
 
         if return_mask:
             mask = self.resize(image=mask)
-            return {"image": image['image'], "mask": mask['image']}
-    
-        return {"image": image['image']}
+            return {"image": image["image"], "mask": mask["image"]}
+
+        return {"image": image["image"]}
 
 
 def adjust_contrast(resize, contrast_factor):
