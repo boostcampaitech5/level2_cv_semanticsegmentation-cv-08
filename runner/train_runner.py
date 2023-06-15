@@ -129,25 +129,31 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 best_dice = dice
                 best_epoch = epoch + 1
                 patience = 0
-                
-                torch.save({
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "scheduler_state_dict": lr_scheduler.state_dict(),
-                }, os.path.join(config.save_model_dir, config.model_file_name))
-            elif dice > 0.1: # 상승하기 시작하면 count
+
+                torch.save(
+                    {
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "scheduler_state_dict": lr_scheduler.state_dict(),
+                    },
+                    os.path.join(config.save_model_dir, config.model_file_name),
+                )
+            elif dice > 0.1:  # 상승하기 시작하면 count
                 patience += 1
                 if patience >= patience_limit:
                     print(f"Over {patience_limit}, Early Stopping ...")
                     break
 
         ed = time.time()
-        
-        torch.save({
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "scheduler_state_dict": lr_scheduler.state_dict(),
-        }, os.path.join(config.save_model_dir, 'last.pth'))
+
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "scheduler_state_dict": lr_scheduler.state_dict(),
+            },
+            os.path.join(config.save_model_dir, "last.pth"),
+        )
         print(f"Epoch {epoch} : {(ed-st)} s")
 
     print(f"Done !!")

@@ -42,7 +42,7 @@ def main(config):
         )
     else:
         model = getattr(models, config.base.pytorch.model)(len(CLASSES))
-    
+
     model.cuda()
 
     # Optimizer 정의
@@ -56,7 +56,7 @@ def main(config):
     lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
         optimizer, **config.scheduler.parameters
     )
-    
+
     # 학습된 Model Info Load
     if config.resume_from:
         print(f"Load {config.resume_from}")
@@ -64,9 +64,9 @@ def main(config):
             model = torch.load(config.resume_from)
         else:
             checkpoint = torch.load(os.path.join(config.save_model_dir, config.model_file_name))
-            model.load_state_dict(checkpoint['model_state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            lr_scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            model.load_state_dict(checkpoint["model_state_dict"])
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+            lr_scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
 
     # Augmentation 정의
     train_aug = getattr(augmentations, config.train.augmentations.name)(
