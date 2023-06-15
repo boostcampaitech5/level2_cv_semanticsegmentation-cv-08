@@ -1,5 +1,3 @@
-import os
-
 import cv2
 import numpy as np
 import streamlit as st
@@ -8,7 +6,6 @@ import torch.nn.functional as F
 from streamlit import session_state as state
 
 import augmentations
-from datasets import XRayDataset, XRayDatasetV2, XRayDatasetFast, CacheDataset
 from utils import label2rgb, read_json
 
 
@@ -24,10 +21,10 @@ def load_dataset(dataset_type):
     )
     valid_dataset = globals()[dataset_type](state.config, is_train=False, transforms=tf)
     attr = {
-        'XRayDataset': 'filenames',
-        'XRayDatasetV2': 'fnames',
-        'XRayDatasetFast': 'filenames',
-        'CacheDataset': '_filename'
+        "XRayDataset": "filenames",
+        "XRayDatasetV2": "fnames",
+        "XRayDatasetFast": "filenames",
+        "CacheDataset": "_filename",
     }
     state.valid_dataset = valid_dataset
     state.fnames = getattr(valid_dataset, attr[dataset_type])
@@ -126,8 +123,8 @@ if __name__ == "__main__":
 
     st.radio(
         "Choose Dataset",
-        ('XRayDataset', 'XRayDatasetV2', 'XRayDatasetFast', 'CacheDataset'),
-        key="new_dataset_type"
+        ("XRayDataset", "XRayDatasetV2", "XRayDatasetFast", "CacheDataset"),
+        key="new_dataset_type",
     )
 
     if not state.curr_config_path:
