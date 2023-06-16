@@ -28,7 +28,7 @@ class DiceLoss:
 
     def __call__(self, pred, target):
         if self.sigmoid:
-            pred = F.sigmoid(pred)    
+            pred = F.sigmoid(pred)
         pred = pred.contiguous()
         target = target.contiguous()
         intersection = (pred * target).sum(dim=2).sum(dim=2)
@@ -69,8 +69,9 @@ class BCEDiceLoss:
         loss = bce * self.bce_weight + dice * (1 - self.bce_weight)
         return loss
 
+
 class BCEDiceIoULoss:
-    def __init__(self, bce_weight=0.8, dice_weight=1., iou_weight=1.):
+    def __init__(self, bce_weight=0.8, dice_weight=1.0, iou_weight=1.0):
         self.bce_weight = bce_weight
         self.dice_weight = dice_weight
         self.iou_weight = iou_weight
@@ -83,7 +84,7 @@ class BCEDiceIoULoss:
         dice = self.dice_loss(pred, target)
         iou = self.iou_loss(pred, target)
         loss = bce * self.bce_weight + dice * self.dice_weight + iou * self.iou_weight
-        return loss    
+        return loss
 
 
 class MSELoss:
