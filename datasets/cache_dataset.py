@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from albumentations import Compose, Normalize, Rotate
 from torch.utils.data import Dataset
-
+import cv2
 
 class CacheDataset(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
@@ -27,7 +27,11 @@ class CacheDataset(Dataset):
 
         if self.transforms is not None:
             # inputs = {"image": image, "mask": label} if self.is_train else {"image": image}
-            image, label = np.array(p[0]).transpose(1, 2, 0), np.array(p[1]).transpose(1, 2, 0)
+            image = np.array(p[0])
+            if self.config.gray and image.shape[0] == 3:
+                    image = image[np.newaxis, 0, ...]
+            image = image.transpose(1, 2, 0)
+            label =  np.array(p[1]).transpose(1, 2, 0)
             inputs = {"image": image, "mask": label}
             result = self.transforms(**inputs)
 

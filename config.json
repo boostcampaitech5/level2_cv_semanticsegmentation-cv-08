@@ -2,45 +2,39 @@
     "model": "fcn_resnet50",
     "smp": {
         "use_smp": true,
-        "model": "Unet",
+        "model": "UnetPlusPlus",
         "encoder_name": "timm-regnety_040",
         "encoder_weights": "imagenet"
     },
     "image_root": "/opt/ml/data/train/DCM",
     "label_root": "/opt/ml/data/train/outputs_json",
-
     "train_json_path": "/opt/ml/data/train_split.json",
     "valid_json_path": "/opt/ml/data/valid_split.json",
-
-    "train_cache_data_dir": "/opt/ml/cache_data_512_norm/train",
-    "valid_cache_data_dir": "/opt/ml/cache_data_512_norm/valid",
-
-    "train_hdf5_data_dir": "/opt/ml/hdf5_data_512/train",
-    "valid_hdf5_data_dir": "/opt/ml/hdf5_data_512/valid",
-
+    "train_cache_data_dir": "/opt/ml/cache_data_512/train",
+    "valid_cache_data_dir": "/opt/ml/cache_data_512/valid",
+    "train_hdf5_data_dir": "/opt/ml/hdf5_512/train",
+    "valid_hdf5_data_dir": "/opt/ml/hdf5_512/valid",
     "test_image_root": "/opt/ml/data/test/DCM",
     "dataset": "Hdf5Dataset",
     "num_classes": 29,
-    "loss": "BCEWithLogitsLoss",
-    "epochs": 100,
+    "loss": "BCEDiceLoss",
+    "epochs": 120,
     "train_batch_size": 8,
     "valid_batch_size": 4,
     "test_batch_size": 2,
     "optimizer": {
-        "type": "Adam",
+        "type": "AdamW",
         "parameters": {
             "lr": 0.0001,
             "weight_decay": 1e-06
         }
     },
     "scheduler": {
-        "type": "MultiStepLR",
+        "type": "CosineAnnealingWarmRestarts",
         "parameters": {
-            "milestones": [
-                50,
-                100
-            ],
-            "gamma": 0.5
+            "T_0": 20,
+            "T_mult": 1,
+            "eta_min": 1e-6
         }
     },
     "train_augmentations": {
@@ -61,23 +55,24 @@
             "resize": 512
         }
     },
-    "model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet_regnety-040_512_epoch-15-start",
+    "model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet++_regnety-040_512_dce-dice_AdamW_cosine-warmup-restart/",
     "model_file_name": "best.pt",
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
-    "patience_limit": 20,
-    "fp16": false,
+    "patience_limit": 100,
+    "fp16": true,
     "accumulation_step": 1,
     "wandb": {
         "use_wandb": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "unet_regnety-040_512_epoch-15-start"
+        "run_name": "unet++_regnety-040_512_dce-dice_AdamW_cosine-warmup-restart"
     },
-    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet_regnety-040_512/last.pt",
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/deeplabv3_resnet50_512/best_94-epoch_0.945642.pt",
-    "train_num_workers": 4,
+    "resume_from": false,
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet++_regnety-040_512_dce-dice_AdamW_cosine-warmup-restart/best.pt",
+    "train_num_workers": 8,
     "valid_num_workers": 2,
-    "test_num_workers": 2
+    "test_num_workers": 2,
+    "gray": true
 }

@@ -5,7 +5,6 @@ from glob import glob
 # external library
 import h5py
 import numpy as np
-
 # torch
 import torch
 from torch.utils.data import Dataset
@@ -38,6 +37,8 @@ class Hdf5Dataset(Dataset):
         # uint8 -> float32
         image = (np.array(image) / 255.0).astype(np.float32)
         label = (np.array(label) / 255.0).astype(np.float32)
+        if self.config.gray and image.shape[0] == 3:
+                image = image[np.newaxis, 0, ...]
 
         if self.transforms is not None:
             # (c, h ,w) -> (h, w, c)

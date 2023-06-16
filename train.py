@@ -38,10 +38,11 @@ def main(config):
             model = getattr(smp, config.smp.model)(
                 encoder_name=config.smp.encoder_name,
                 encoder_weights=config.smp.encoder_weights,
-                in_channels=3,
+                in_channels=1 if config.gray else 3,
                 classes=config.num_classes,
             )
         else:
+            assert not config.gray, "RGB for local models"
             model = getattr(models, config.model)(config.num_classes)
     model.cuda()
 

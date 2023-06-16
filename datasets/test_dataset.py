@@ -11,6 +11,7 @@ from torch.utils.data import Dataset
 class XRayInferenceDataset(Dataset):
     def __init__(self, config, transforms=None):
         self.IMAGE_ROOT = config.test_image_root
+        self.config = config
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=self.IMAGE_ROOT)
             for root, _dirs, files in os.walk(self.IMAGE_ROOT)
@@ -32,6 +33,8 @@ class XRayInferenceDataset(Dataset):
         image_path = os.path.join(self.IMAGE_ROOT, image_name)
 
         image = cv2.imread(image_path)
+        if self.config.gray and image.shape[-1] == 3:
+                image = image[..., 0, np.newaxis]
         image = image / 255.0
 
         if self.transforms is not None:
