@@ -69,7 +69,11 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                             outputs = F.interpolate(outputs, size=(mask_h, mask_w), mode="bilinear")
 
                     # loss 계산
-                    loss = criterion(outputs, masks)
+                    if config.base.use == "pytorch" and config.base.pytorch.model in ["UNet_3Plus_DeepSup", "UNet_3Plus_DeepSup_CGM"]:
+                        loss_list = [criterion(output, masks) for output in outputs]
+                        loss = torch.mean(torch.stack(loss_list))
+                    else:
+                        loss = criterion(outputs, masks)
 
                 scaler.scale(loss).backward()
 
@@ -97,7 +101,11 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                         outputs = F.interpolate(outputs, size=(mask_h, mask_w), mode="bilinear")
 
                 # loss 계산
-                loss = criterion(outputs, masks)
+                if config.base.use == "pytorch" and config.base.pytorch.model in ["UNet_3Plus_DeepSup", "UNet_3Plus_DeepSup_CGM"]:
+                    loss_list = [criterion(output, masks) for output in outputs]
+                    loss = torch.mean(torch.stack(loss_list))
+                else:
+                    loss = criterion(outputs, masks)
                 loss.backward()
 
                 if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
@@ -178,7 +186,9 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
             outputs = model(images)
             if isinstance(outputs, collections.OrderedDict):
                 outputs = outputs["out"]
-
+            if isinstance(outputs, tuple): # UNet 3+ Deep supervision
+                outputs = outputs[0]
+            
             output_h, output_w = outputs.size(-2), outputs.size(-1)
             mask_h, mask_w = masks.size(-2), masks.size(-1)
 
