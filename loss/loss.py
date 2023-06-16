@@ -22,10 +22,13 @@ class FocalLoss:
 
 
 class DiceLoss:
-    def __init__(self, smooth=1.0):
+    def __init__(self, smooth=1.0, sigmoid=True):
         self.smooth = smooth
+        self.sigmoid = sigmoid
 
     def __call__(self, pred, target):
+        if self.sigmoid:
+            pred = F.sigmoid(pred)
         pred = pred.contiguous()
         target = target.contiguous()
         intersection = (pred * target).sum(dim=2).sum(dim=2)
@@ -37,24 +40,27 @@ class DiceLoss:
 
 
 class IoULoss:
-    def __init__(self, smooth=1.0):
+    def __init__(self, smooth=1.0, sigmoid=True):
         self.smooth = smooth
+        self.sigmoid = sigmoid
 
     def __call__(self, inputs, targets):
-        inputs = F.sigmoid(inputs)
+        if self.sigmoid:
+            inputs = F.sigmoid(inputs)
         inputs = inputs.view(-1)
         targets = targets.view(-1)
         intersection = (inputs * targets).sum()
         total = (inputs + targets).sum()
         union = total - intersection
         IoU = (intersection + self.smooth) / (union + self.smooth)
+        IoU = torch.mean(IoU)
         return 1 - IoU
 
 
 class BCEDiceLoss:
     def __init__(self, bce_weight=0.5):
         self.bce_weight = bce_weight
-        self.dice_loss = DiceLoss()
+        self.dice_loss = DiceLoss(sigmoid=False)
 
     def __call__(self, pred, target):
         bce = F.binary_cross_entropy_with_logits(pred, target)
@@ -64,6 +70,24 @@ class BCEDiceLoss:
         return loss
 
 
+class BCEDiceIoULoss:
+    def __init__(self, bce_weight=0.8, dice_weight=1.0, iou_weight=1.0):
+        self.bce_weight = bce_weight
+        self.dice_weight = dice_weight
+        self.iou_weight = iou_weight
+        self.dice_loss = DiceLoss(sigmoid=False)
+        self.iou_loss = IoULoss(sigmoid=False)
+
+    def __call__(self, pred, target):
+        bce = F.binary_cross_entropy_with_logits(pred, target)
+        pred = F.sigmoid(pred)
+        dice = self.dice_loss(pred, target)
+        iou = self.iou_loss(pred, target)
+        loss = bce * self.bce_weight + dice * self.dice_weight + iou * self.iou_weight
+        return loss
+
+
 class MSELoss:
     def __call__(self, pred, target):
+        pred = F.sigmoid(pred)
         return F.mse_loss(pred, target)
