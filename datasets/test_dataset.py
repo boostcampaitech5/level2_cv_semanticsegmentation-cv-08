@@ -4,6 +4,8 @@ import os
 # external library
 import cv2
 import numpy as np
+
+# torch
 import torch
 from torch.utils.data import Dataset
 
@@ -44,5 +46,7 @@ class XRayInferenceDataset(Dataset):
 
         # to tenser will be done later
         image = image.transpose(2, 0, 1)  # make channel first
+
         image = torch.from_numpy(image).float()
+
         return image, image_name

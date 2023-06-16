@@ -1,5 +1,3 @@
-import os
-
 import cv2
 import numpy as np
 import streamlit as st
@@ -8,7 +6,6 @@ import torch.nn.functional as F
 from streamlit import session_state as state
 
 import augmentations
-from datasets import XRayDatasetV2
 from utils import label2rgb, read_json
 
 
@@ -18,23 +15,29 @@ def load_local_model():
     st.success("Model loaded successfully!")
 
 
-def load_dataset():
+def load_dataset(dataset_type):
     tf = getattr(augmentations, state.config.valid_augmentations.name)(
         **state.config.valid_augmentations.parameters
     )
-    valid_dataset = XRayDatasetV2(state.config, is_train=False, transforms=tf)
+    valid_dataset = globals()[dataset_type](state.config, is_train=False, transforms=tf)
+    attr = {
+        "XRayDataset": "filenames",
+        "XRayDatasetV2": "fnames",
+        "XRayDatasetFast": "filenames",
+        "CacheDataset": "_filename",
+    }
     state.valid_dataset = valid_dataset
-    state.fnames = valid_dataset.fnames
+    state.fnames = getattr(valid_dataset, attr[dataset_type])
 
 
 def predict(idx, thr=0.5):
-    img, label = state.valid_dataset[idx]
+    image, label = state.valid_dataset[idx]
     img_name = state.fnames[idx]
     state.trained_model.eval()
     with st.spinner("Running prediction..."):
         with torch.no_grad():
-            img = torch.unsqueeze(img, 0).cuda()
-            output = state.trained_model(img)
+            input = torch.unsqueeze(image, 0).cuda()
+            output = state.trained_model(input)
 
             # restore original size
             output = F.interpolate(output, size=(2048, 2048), mode="bilinear")
@@ -47,7 +50,9 @@ def predict(idx, thr=0.5):
             false_positive = np.where(label - output < 0, 1, 0)[0]
             false_negative = np.where(label - output > 0, 1, 0)[0]
 
+        image = np.expand_dims(np.array(image[0]), axis=-1)
         state.prediction_cache[idx] = {
+            "input": image,
             "pred": output,
             "filename": img_name,
             "label": label[0],
@@ -60,8 +65,7 @@ def visualize(idx):
     col1, col2, col3, col4, col5 = st.columns([0.2, 0.2, 0.2, 0.2, 0.2])
 
     img_fname = state.prediction_cache[idx]["filename"]
-    image = cv2.imread(os.path.join(state.config.image_root, f"{img_fname}.png"))
-    image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
+    image = state.prediction_cache[idx]["input"]
 
     gt = state.prediction_cache[idx]["label"]
     gt = label2rgb(gt)
@@ -110,9 +114,18 @@ if __name__ == "__main__":
     if "curr_config_path" not in state:
         state.curr_config_path = {}
 
+    if "curr_dataset_type" not in state:
+        state.curr_dataset_type = {}
+
     st.header("Validation Results")
 
     st.text_input("Config Path", key="new_config_path")
+
+    st.radio(
+        "Choose Dataset",
+        ("XRayDataset", "XRayDatasetV2", "XRayDatasetFast", "CacheDataset"),
+        key="new_dataset_type",
+    )
 
     if not state.curr_config_path:
         state.curr_config_path = state.new_config_path
@@ -124,7 +137,11 @@ if __name__ == "__main__":
         state.config = read_json(state.curr_config_path)
         if not state.prediction_cache:
             load_local_model()
-            load_dataset()
+
+        if state.curr_dataset_type != state.new_dataset_type:
+            state.curr_dataset_type = state.new_dataset_type
+            state.prediction_cache.clear()
+            load_dataset(state.curr_dataset_type)
 
         fname_list = [f"{i}: {f}" for i, f in enumerate(state.fnames)]
         idx_str = st.selectbox("Choose image", fname_list)
