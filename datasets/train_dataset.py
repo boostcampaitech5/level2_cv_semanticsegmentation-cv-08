@@ -79,8 +79,9 @@ class XRayDataset(Dataset):
     def __getitem__(self, item):
         image_name = self.filenames[item]
         image_path = os.path.join(self.config["image_root"], image_name)
-
         image = cv2.imread(image_path)
+        if self.config.gray and image.shape[-1] == 3:
+                image = image[..., 0, np.newaxis]
         image = image / 255.0
 
         label_name = self.labelnames[item]
@@ -146,10 +147,8 @@ class XRayDatasetV2(Dataset):
             self.ids.append(k)
             self.fnames.extend(v)
 
-        if transforms is None:
-            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
-        else:
-            self.transforms = transforms
+
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.fnames)
@@ -160,6 +159,8 @@ class XRayDatasetV2(Dataset):
         label_path = os.path.join(self.label_root, f"{fname}.json")
 
         image = cv2.imread(image_path)
+        if self.config.gray and image.shape[-1] == 3:
+                image = image[..., 0, np.newaxis]      
         image = image / 255.0
 
         label_shape = tuple(image.shape[:2]) + (len(CLASSES),)
@@ -257,12 +258,7 @@ class XRayDatasetFast(Dataset):
         self.labelnames = labelnames
         self.is_train = is_train
 
-        if transforms is None:
-            print("transforms is None")
-            print(transforms)
-            self.transforms = A.Compose([A.Resize(config.input_size, config.input_size)], p=1.0)
-        else:
-            self.transforms = transforms
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.filenames)
@@ -272,6 +268,8 @@ class XRayDatasetFast(Dataset):
         image_path = os.path.join(self.config["image_root"], image_name)
 
         image = cv2.imread(image_path)
+        if self.config.gray and image.shape[-1] == 3:
+                image = image[..., 0, np.newaxis]
         image = image / 255.0
 
         label_name = self.labelnames[item]
