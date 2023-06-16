@@ -30,6 +30,8 @@ def main(config):
             project=config.wandb.project,
             name=config.wandb.run_name,
             config=config,
+            # id="66io15xr",
+            # resume="must"
         )
 
     # Model Define
@@ -37,7 +39,7 @@ def main(config):
         model = getattr(smp, config.base.smp.model)(
             encoder_name=config.base.smp.encoder_name,
             encoder_weights=config.base.smp.encoder_weights,
-            in_channels=3,
+            in_channels=3 if not config.gray else 1,
             classes=len(CLASSES),
         )
     else:
@@ -63,7 +65,7 @@ def main(config):
         if os.path.splitext(config.resume_from)[1] == ".pt":
             model = torch.load(config.resume_from)
         else:
-            checkpoint = torch.load(os.path.join(config.save_model_dir, config.model_file_name))
+            checkpoint = torch.load(config.resume_from)
             model.load_state_dict(checkpoint["model_state_dict"])
             optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
             lr_scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
@@ -72,9 +74,10 @@ def main(config):
     train_aug = getattr(augmentations, config.train.augmentations.name)(
         **config.train.augmentations.parameters
     )
-    valid_aug = getattr(augmentations, config.valid.augmentations.name)(
-        **config.valid.augmentations.parameters
-    )
+    if config.validation:
+        valid_aug = getattr(augmentations, config.valid.augmentations.name)(
+            **config.valid.augmentations.parameters
+        )
 
     train_dataset = getattr(datasets, config.dataset)(config, is_train=True, transforms=train_aug)
     train_loader = DataLoader(
@@ -85,14 +88,17 @@ def main(config):
         drop_last=True,
     )
 
-    valid_dataset = getattr(datasets, config.dataset)(config, is_train=False, transforms=valid_aug)
-    valid_loader = DataLoader(
-        dataset=valid_dataset,
-        batch_size=config.valid.batch_size,
-        shuffle=False,
-        num_workers=config.valid.num_workers,
-        drop_last=False,
-    )
+    if config.validation:
+        valid_dataset = getattr(datasets, config.dataset)(config, is_train=False, transforms=valid_aug)
+        valid_loader = DataLoader(
+            dataset=valid_dataset,
+            batch_size=config.valid.batch_size,
+            shuffle=False,
+            num_workers=config.valid.num_workers,
+            drop_last=False,
+        )
+    else:
+        valid_loader = None
 
     train(config, model, train_loader, valid_loader, criterion, optimizer, lr_scheduler)
 

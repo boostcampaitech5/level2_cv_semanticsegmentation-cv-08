@@ -34,36 +34,38 @@ class XRayDataset(Dataset):
         # 한 폴더 안에 한 인물의 양손에 대한 `.dcm` 파일이 존재하기 때문에
         # 폴더 이름을 그룹으로 해서 GroupKFold를 수행합니다.
         # 동일 인물의 손이 train, valid에 따로 들어가는 것을 방지합니다.
+        if config.validation:
+            groups = [os.path.dirname(fname) for fname in _filenames]
 
-        groups = [os.path.dirname(fname) for fname in _filenames]
+            # dummy label
+            ys = [0 for fname in _filenames]
 
-        # dummy label
-        ys = [0 for fname in _filenames]
+            # 전체 데이터의 20%를 validation data로 쓰기 위해 `n_splits`를
+            # 5으로 설정하여 KFold를 수행합니다.
+            gkf = GroupKFold(n_splits=5)
 
-        # 전체 데이터의 20%를 validation data로 쓰기 위해 `n_splits`를
-        # 5으로 설정하여 KFold를 수행합니다.
-        gkf = GroupKFold(n_splits=5)
+            filenames = []
+            labelnames = []
+            for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
+                if is_train:
+                    # 0번을 validation dataset으로 사용합니다.
+                    if i == 0:
+                        continue
 
-        filenames = []
-        labelnames = []
-        for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
-            if is_train:
-                # 0번을 validation dataset으로 사용합니다.
-                if i == 0:
-                    continue
+                    filenames += list(_filenames[y])
+                    labelnames += list(_labelnames[y])
 
-                filenames += list(_filenames[y])
-                labelnames += list(_labelnames[y])
+                else:
+                    filenames = list(_filenames[y])
+                    labelnames = list(_labelnames[y])
 
-            else:
-                filenames = list(_filenames[y])
-                labelnames = list(_labelnames[y])
-
-                # skip i > 0
-                break
-
-        self.filenames = filenames
-        self.labelnames = labelnames
+                    # skip i > 0
+                    break
+            self.filenames = filenames
+            self.labelnames = labelnames
+        else:
+            self.filenames = _filenames
+            self.labelnames = _labelnames            
         self.is_train = is_train
         self.transforms = transforms
 

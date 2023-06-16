@@ -24,7 +24,7 @@ def test(config, model, data_loader, thr=0.5):
 
         for step, (images, image_names) in tqdm(enumerate(data_loader), total=len(data_loader)):
             images = images.cuda()
-            outputs = model(images)
+            outputs = model(images)[0]
             if isinstance(outputs, collections.OrderedDict):
                 outputs = outputs["out"]
 

@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class deconvnet(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, in_channels):
         super().__init__()
 
         def CBR(in_channels, out_channels, kernel_size=3, stride=1, padding=1):
@@ -33,7 +33,7 @@ class deconvnet(nn.Module):
 
         self.encoder = nn.ModuleList(
             [
-                CBR(3, 64, 3, 1, 1),
+                CBR(in_channels, 64, 3, 1, 1),
                 CBR(64, 64, 3, 1, 1),
                 nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True, return_indices=True),
                 CBR(64, 128, 3, 1, 1),

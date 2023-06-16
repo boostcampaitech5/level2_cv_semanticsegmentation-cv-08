@@ -130,7 +130,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 wandb.log({"train/loss": loss.item()})
 
         # validation 주기에 따른 loss 출력 및 best model 저장
-        if (epoch + 1) % config.val_every == 0:
+        if (epoch + 1) % config.val_every == 0 and val_loader:
             dice = valid(config, epoch + 1, model, val_loader, criterion)
 
             if config.scheduler.type == "ReduceLROnPlateau":
@@ -157,6 +157,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 if patience >= patience_limit:
                     print(f"Over {patience_limit}, Early Stopping ...")
                     break
+        else:
+            lr_scheduler.step()
 
         ed = time.time()
 
@@ -171,7 +173,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
         print(f"Epoch {epoch} : {(ed-st)} s")
 
     print(f"Done !!")
-    print(f"Best performance at epoch: {best_epoch} dice: {best_dice:.6f}")
+    if val_loader:
+        print(f"Best performance at epoch: {best_epoch} dice: {best_dice:.6f}")
     print(f"Save model in {config.save_model_dir}")
 
 

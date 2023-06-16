@@ -12,7 +12,7 @@ from torch.utils.data import Dataset
 
 class XRayInferenceDataset(Dataset):
     def __init__(self, config, transforms=None):
-        self.IMAGE_ROOT = config.test_image_root
+        self.IMAGE_ROOT = config.test_image_dir
         self.config = config
         pngs = {
             os.path.relpath(os.path.join(root, fname), start=self.IMAGE_ROOT)

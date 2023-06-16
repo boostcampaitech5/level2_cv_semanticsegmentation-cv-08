@@ -4,7 +4,7 @@ from torchvision import models
 
 
 class fcn8(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, in_channels):
         super(fcn8, self).__init__()
 
         def CBR(in_channels, out_channels, kernel_size=3, stride=1, padding=1):
@@ -20,7 +20,7 @@ class fcn8(nn.Module):
             )
 
         # conv1
-        self.conv1_1 = CBR(3, 64, 3, 1, 1)
+        self.conv1_1 = CBR(in_channels, 64, 3, 1, 1)
         self.conv1_2 = CBR(64, 64, 3, 1, 1)
         self.pool1 = nn.MaxPool2d(2, stride=2, ceil_mode=True)
 
@@ -144,7 +144,7 @@ class fcn8(nn.Module):
 
 
 class fcn32(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, in_channels):
         super().__init__()
 
         def CBR(in_channels, out_channels, kernel_size=3, stride=1, padding=1):
@@ -161,7 +161,7 @@ class fcn32(nn.Module):
 
         self.nets = nn.ModuleList(
             [
-                CBR(3, 64, 3, 1, 1),
+                CBR(in_channels, 64, 3, 1, 1),
                 CBR(64, 64, 3, 1, 1),
                 nn.MaxPool2d(2, stride=2, ceil_mode=True),
                 CBR(64, 128, 3, 1, 1),

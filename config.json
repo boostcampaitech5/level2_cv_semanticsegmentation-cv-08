@@ -2,18 +2,18 @@
     "base": {
         "use": "smp",
         "pytorch": {
-            "model": "unet"
+            "model": "UNet_3Plus_DeepSup"
         },
         "smp": {
             "model": "UnetPlusPlus",
-            "encoder_name": "resnet50",
+            "encoder_name": "timm-regnety_040",
             "encoder_weights": "imagenet"
         }
     },
-    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet+++_512_BCE-Dice_adamw",
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet+++_512-BCE-Dice_adamw",
-    "model_file_name": "best.pth",
-    "resume_from": "/opt/ml/input/results/UnetPlusPlus_resnet50/best.pt",
+    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/IoU",
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/IoU",
+    "model_file_name": "last.pth",
+    "resume_from": false,
     "dataset": "Hdf5Dataset",
     "image_dir": "/opt/ml/data/train/DCM",
     "label_dir": "/opt/ml/data/train/outputs_json",
@@ -27,7 +27,7 @@
     "epochs": 120,
     "train": {
         "batch_size": 8,
-        "num_workers": 4,
+        "num_workers": 8,
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
@@ -36,7 +36,7 @@
         }
     },
     "valid": {
-        "batch_size": 4,
+        "batch_size": 2,
         "num_workers": 2,
         "augmentations": {
             "name": "base_augmentation",
@@ -56,13 +56,13 @@
         }
     },
     "optimizer": {
-        "type": "AdamW",
+        "type": "Adam",
         "parameters": {
             "lr": 0.0001,
             "weight_decay": 1e-06
         }
     },
-    "criterion": "BCEWithLogitsLoss",
+    "criterion": "IoULoss",
     "scheduler": {
         "type": "MultiStepLR",
         "parameters": {
@@ -76,13 +76,15 @@
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
-    "patience_limit": 20,
+    "patience_limit": 200,
     "accumulation_step": 1,
     "fp16": true,
     "wandb": {
-        "use": false,
+        "use": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "unet+++_512-BCE-Dice_adamw"
-    }
+        "run_name": "IoU"
+    },
+    "gray": true,
+    "validation": true
 }
