@@ -2,6 +2,112 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+def conv_block(in_channels, out_channels, kernel_size, stride, padding):
+    return nn.Sequential(
+        nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
+        nn.ReLU(inplace=True)
+    )
+class fcn8_7d(nn.Module):
+    def __init__(self, num_classes, in_channels=1):
+        super(fcn8_7d, self).__init__()
+        self.relu    = nn.ReLU(inplace=True)
+        self.conv1 = nn.Sequential(
+            conv_block(in_channels, 64, 3, 1, 1),
+            conv_block(64, 64, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )
+        self.conv2 = nn.Sequential(
+            conv_block(64, 128, 3, 1, 1),
+            conv_block(128, 128, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )
+        self.conv3 = nn.Sequential(
+            conv_block(128, 256, 3, 1, 1),
+            conv_block(256, 256, 3, 1, 1),
+            conv_block(256, 256, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )
+        self.conv4 = nn.Sequential(
+            conv_block(256, 256, 3, 1, 1),
+            conv_block(256, 256, 3, 1, 1),
+            conv_block(256, 256, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )
+        self.conv5 = nn.Sequential(
+            conv_block(256, 512, 3, 1, 1),
+            conv_block(512, 512, 3, 1, 1),
+            conv_block(512, 512, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )
+        self.conv6 = nn.Sequential(
+            conv_block(512, 512, 3, 1, 1),
+            conv_block(512, 512, 3, 1, 1),
+            conv_block(512, 512, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )
+        self.conv7 = nn.Sequential(
+            conv_block(512, 1024, 3, 1, 1),
+            conv_block(1024, 1024, 3, 1, 1),
+            conv_block(1024, 1024, 3, 1, 1),
+            nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        )                
+
+        self.fc6 = nn.Sequential(
+            nn.Conv2d(1024, 4096, 1, 1, 0),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d())
+        self.fc7 = nn.Sequential(
+            nn.Conv2d(4096, 4096, 1, 1, 0),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d())
+        self.score = nn.Conv2d(4096, num_classes, 1, 1, 0)
+        self.conv3_score = nn.Conv2d(256, num_classes, 1, 1, 0)
+        self.conv4_score = nn.Conv2d(256, num_classes, 1, 1, 0)
+        self.conv5_score = nn.Conv2d(512, num_classes, 1, 1, 0)
+        self.conv6_score = nn.Conv2d(512, num_classes, 1, 1, 0)
+        self.conv7_score = nn.Conv2d(1024, num_classes, 1, 1, 0)
+        self.up_score_2 = nn.ConvTranspose2d(num_classes, num_classes, 4, 2, 1)
+        self.up_score_8 = nn.ConvTranspose2d(num_classes, num_classes, 16, 8, 4)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+
+        conv3_out = self.conv3(x)
+
+        conv3_out_skip = self.conv3_score(conv3_out)
+
+        conv4_out = self.conv4(conv3_out)
+
+        conv4_out_skip = self.conv4_score(conv4_out)
+
+        conv5_out = self.conv5(conv4_out)
+
+        conv5_out_skip = self.conv5_score(conv5_out)
+
+        conv6_out = self.conv6(conv5_out)
+
+        conv6_out_skip = self.conv6_score(conv6_out)        
+
+        x = self.conv7(conv6_out)
+        x = self.fc6(x)
+        x = self.fc7(x)
+        x = self.score(x)
+
+        output = self.up_score_2(x)        
+        output = output + conv6_out_skip
+
+        output = self.up_score_2(output)        
+        output = output + conv5_out_skip
+
+        output = self.up_score_2(output)
+        output = output + conv4_out_skip
+
+        output = self.up_score_2(output)
+        output = output + conv3_out_skip
+
+        output = self.up_score_8(output)
+        return output
 
 class fcn8(nn.Module):
     def __init__(self, num_classes, in_channels):
@@ -231,3 +337,8 @@ class fcn_resnet101(nn.Module):
 
         outputs = self.forward(image)
         return outputs
+
+if __name__ == "__main__":
+    model = fcn8(29)
+    print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+    print(model(torch.rand((1, 1024, 1024))).shape)
