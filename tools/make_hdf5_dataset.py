@@ -21,11 +21,11 @@ def main(config, args):
     train_path = os.path.join(args.target, "train")
     valid_path = os.path.join(args.target, "valid")
 
-    train_aug = getattr(augmentations, config.train_augmentations.name)(
-        **config.train_augmentations.parameters
+    train_aug = getattr(augmentations, config.train.augmentations.name)(
+        **config.train.augmentations.parameters
     )
-    valid_aug = getattr(augmentations, config.valid_augmentations.name)(
-        **config.valid_augmentations.parameters
+    valid_aug = getattr(augmentations, config.valid.augmentations.name)(
+        **config.valid.augmentations.parameters
     )
 
     if args.v2:
