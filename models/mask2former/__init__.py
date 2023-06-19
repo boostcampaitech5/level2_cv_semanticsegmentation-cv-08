@@ -1,5 +1,5 @@
-from .MaskFormerModel import mask2former
 from .backbone import resnet, swin
+from .MaskFormerModel import mask2former
 from .pixel_decoder import msdeformattn
 from .transformer_decoder import (
     mask2former_transformer_decoder,
