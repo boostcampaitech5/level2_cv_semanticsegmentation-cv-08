@@ -54,7 +54,7 @@ class CacheDataset(Dataset):
 
             if self.config.copy_paste.k != 0 and self.is_train:
                 randoms = random.choices(
-                    [i for i in range(self.filenames)], k=self.config.copy_paste.k
+                    [i for i in range(len(self.filenames))], k=self.config.copy_paste.k
                 )
                 for i in randoms:
                     target_image = cv2.imread(self.filenames[i]) / 255.0
