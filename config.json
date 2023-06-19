@@ -10,11 +10,11 @@
             "encoder_weights": "imagenet"
         }
     },
-    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_2048_batch-16_copypaste",
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_2048_batch-16_copypaste",
+    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_1280_batch-16_copypaste",
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_1280_batch-16_copypaste",
     "model_file_name": "best.pth",
-    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_2048_batch-16_copypaste/best.pth",
-    "dataset": "Hdf5Dataset",
+    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_1280_batch-16_copypaste/best.pth",
+    "dataset": "XRayDatasetFast",
     "image_dir": "/opt/ml/data/train/DCM",
     "label_dir": "/opt/ml/data/train/outputs_json",
     "test_image_dir": "/opt/ml/data/test/DCM",
@@ -22,16 +22,16 @@
     "valid_json_path": "/opt/ml/data/valid_split.json",
     "train_cache_data_dir": "/opt/ml/cache_data_512/train",
     "valid_cache_data_dir": "/opt/ml/cache_data_512/valid",
-    "train_hdf5_data_dir": "/opt/ml/hdf5_2048_gray/train",
-    "valid_hdf5_data_dir": "/opt/ml/hdf5_2048_gray/valid",
+    "train_hdf5_data_dir": "/opt/ml/hdf5_1280_gray/train",
+    "valid_hdf5_data_dir": "/opt/ml/hdf5_1280_gray/valid",
     "epochs": 120,
     "train": {
-        "batch_size": 1,
-        "num_workers": 2,
+        "batch_size": 2,
+        "num_workers": 4,
         "augmentations": {
             "name": "rotate_flip",
             "parameters": {
-                "resize": 2048,
+                "resize": 1280,
                 "p_rotate": 0.3
             }
         }
@@ -42,7 +42,7 @@
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
-                "resize": 2048
+                "resize": 1280
             }
         }
     },
@@ -52,18 +52,18 @@
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
-                "resize": 2048
+                "resize": 1280
             }
         }
     },
     "optimizer": {
         "type": "AdamW",
         "parameters": {
-            "lr": 1e-3,
+            "lr": 0.0001,
             "weight_decay": 1e-06
         }
     },
-    "criterion": "BCEDiceFocalLoss",
+    "criterion": "BCEDiceLoss",
     "scheduler": {
         "type": "CosineAnnealingWarmRestarts",
         "parameters": {
@@ -76,13 +76,13 @@
     "log_step": 20,
     "val_every": 1,
     "patience_limit": 20,
-    "accumulation_step": 16,
+    "accumulation_step": 8,
     "fp16": true,
     "wandb": {
         "use": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "regnety_320_2048_batch-16_copypaste"
+        "run_name": "regnety_320_1280_batch-16_copypaste"
     },
     "gray": true,
     "validation": true,
