@@ -8,6 +8,7 @@ from .util import (
     label2rgb,
     read_json,
     set_seed,
+    CosineAnnealingWarmUpRestarts
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "decode_rle_to_mask",
     "label2rgb",
     "read_json",
+    "CosineAnnealingWarmUpRestarts"
 ]

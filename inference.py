@@ -37,7 +37,7 @@ def main(config):
             model = torch.load(config.resume_from)
     else:
         model.load_state_dict(
-            torch.load(os.path.join(config.save_model_dir, config.model_file_name))
+            torch.load(os.path.join(config.save_model_dir, config.model_file_name))["model_state_dict"]
         )
 
     # Augmentation

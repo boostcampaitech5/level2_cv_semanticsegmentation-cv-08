@@ -483,7 +483,7 @@ class HighResolutionNet(nn.Module):
 
 
 def hrnet(num_classes, **kwargs):
-    with open("./models/config/hrnet.yaml", "r") as f:
+    with open("./models/hrnet/config/hrnet.yaml", "r") as f:
         cfg = yaml.safe_load(f)
     cfg = AttributeDict(cfg)
     cfg.DATASET.NUM_CLASSES = num_classes

@@ -13,7 +13,7 @@ import datasets
 import loss
 import models
 from runner import train
-from utils import CLASSES, read_json
+from utils import CLASSES, read_json, CosineAnnealingWarmUpRestarts
 
 
 def main(config):
@@ -53,11 +53,14 @@ def main(config):
     criterion = getattr(loss, config.criterion)()
 
     # Learning Rate Scheduler 정의
-    lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
-        optimizer, **config.scheduler.parameters
-    )
+    if config.scheduler.type == "CosineAnnealingWarmUpRestarts":
+       lr_scheduler = CosineAnnealingWarmUpRestarts(optimizer, **config.scheduler.parameters)
+    else: 
+        lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
+            optimizer, **config.scheduler.parameters
+        )
 
-    # 학습된 Model Info Load
+    # 학습된 Model Info Load -> path를 입력해주세요
     if config.resume_from:
         print(f"Load {config.resume_from}")
         if os.path.splitext(config.resume_from)[1] == ".pt":

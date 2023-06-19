@@ -1,0 +1,29 @@
+MODEL:
+  BACKBONE: 
+    TYPE: 'swin' # 'resnet' or 'swin'
+  PRETRAINED_WEIGHTS: 
+  IS_TRAINING: True    
+  RESNETS:
+    DEPTH: 50
+    STEM_OUT_CHANNELS: 64
+    STRIDE_IN_1X1: False    
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
+  SWIN:
+    TYPE: "base" # "tiny" or "small" or "base" or "large"
+    EMBED_DIM: 96
+    DEPTHS: [2 2 6 2]
+    NUM_HEADS: [3 6 12 24]
+    PATCH_SIZE: 4
+    WINDOW_SIZE: 7
+    MLP_RATIO: 4.
+    QKV_BIAS: True
+    QK_SCALE: 
+    DROP_RATE: 0.
+    ATTN_DROP_RATE: 0.
+    DROP_PATH_RATE: 0.3
+    APE: False
+    PATCH_NORM: True
+    OUT_INDICES: (0 1 2 3)
+    PRETRAIN_IMG_SIZE: 384
+    USE_CHECKPOINT: False
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
