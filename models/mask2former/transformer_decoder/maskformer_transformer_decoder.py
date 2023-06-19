@@ -14,7 +14,7 @@ class StandardTransformerDecoder(nn.Module):
         self,
         in_channels,
         num_classes,
-        mask_classification=True,        
+        mask_classification=True,
         hidden_dim=256,
         num_queries=100,
         nheads=8,
@@ -25,7 +25,7 @@ class StandardTransformerDecoder(nn.Module):
         pre_norm=False,
         deep_supervision=True,
         mask_dim=256,
-        enforce_input_project=False
+        enforce_input_project=False,
     ):
         super().__init__()
         self.mask_classification = mask_classification

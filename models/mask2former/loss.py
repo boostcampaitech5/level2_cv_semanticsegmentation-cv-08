@@ -3,24 +3,23 @@
 """
 MaskFormer criterion.
 """
-import torch
-import numpy as np
-import torch.nn.functional as F
-import torch.distributed as dist
-from torch import nn
-import sys
 import os
-sys.path.append(os.path.dirname(__file__) + os.sep + '../')
+import sys
 
-from .point_features import point_sample, get_uncertain_point_coords_with_randomness
-from .misc import is_dist_avail_and_initialized, nested_tensor_from_tensor_list, get_world_size
+import torch
+import torch.nn.functional as F
+from torch import nn
+
+sys.path.append(os.path.dirname(__file__) + os.sep + "../")
+
+from .misc import get_world_size, is_dist_avail_and_initialized, nested_tensor_from_tensor_list
 
 
 def dice_loss(
-        inputs: torch.Tensor,
-        targets: torch.Tensor,
-        num_masks: float,
-    ):
+    inputs: torch.Tensor,
+    targets: torch.Tensor,
+    num_masks: float,
+):
     """
     Compute the DICE loss, similar to generalized IOU for masks
     Args:
@@ -39,10 +38,10 @@ def dice_loss(
 
 
 def sigmoid_ce_loss(
-        inputs: torch.Tensor,
-        targets: torch.Tensor,
-        num_masks: float,
-    ):
+    inputs: torch.Tensor,
+    targets: torch.Tensor,
+    num_masks: float,
+):
     """
     Args:
         inputs: A float tensor of arbitrary shape.
@@ -55,6 +54,7 @@ def sigmoid_ce_loss(
     """
     loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction="none")
     return loss.mean(1).sum() / num_masks
+
 
 def sigmoid_focal_loss(inputs, targets, num_masks, alpha: float = 0.25, gamma: float = 2):
     """
@@ -83,6 +83,7 @@ def sigmoid_focal_loss(inputs, targets, num_masks, alpha: float = 0.25, gamma: f
 
     return loss.mean(1).sum() / num_masks
 
+
 def calculate_uncertainty(logits):
     """
     We estimate uncerainty as L1 distance between 0.0 and the logit prediction in 'logits' for the
@@ -107,8 +108,18 @@ class SetCriterion(nn.Module):
         2) we supervise each pair of matched ground-truth / prediction (supervise class and box)
     """
 
-    def __init__(self, num_classes, matcher, weight_dict, eos_coef, losses,
-                 num_points, oversample_ratio, importance_sample_ratio, device):
+    def __init__(
+        self,
+        num_classes,
+        matcher,
+        weight_dict,
+        eos_coef,
+        losses,
+        num_points,
+        oversample_ratio,
+        importance_sample_ratio,
+        device,
+    ):
         """Create the criterion.
         Parameters:
             num_classes: number of object categories, omitting the special no-object category
@@ -126,7 +137,7 @@ class SetCriterion(nn.Module):
         self.device = device
         empty_weight = torch.ones(self.num_classes + 1).to(device)
         empty_weight[-1] = self.eos_coef
-        self.register_buffer("empty_weight", empty_weight)        
+        self.register_buffer("empty_weight", empty_weight)
 
         # pointwise mask loss parameters
         self.num_points = num_points
@@ -141,14 +152,18 @@ class SetCriterion(nn.Module):
         src_logits = outputs["pred_logits"].float()
 
         idx = self._get_src_permutation_idx(indices)
-        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)]).to(self.device)
-        target_classes = torch.full(src_logits.shape[:2], 0, dtype=torch.int64, device=src_logits.device)
+        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)]).to(
+            self.device
+        )
+        target_classes = torch.full(
+            src_logits.shape[:2], 0, dtype=torch.int64, device=src_logits.device
+        )
         target_classes[idx] = target_classes_o
 
         loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
         losses = {"loss_ce": loss_ce}
         return losses
-    
+
     def loss_masks(self, outputs, targets, indices, num_masks):
         """Compute the losses related to the masks: the focal loss and the dice loss.
         targets dicts must contain the key "masks" containing a tensor of dim [nb_target_boxes, h, w]
@@ -157,7 +172,7 @@ class SetCriterion(nn.Module):
 
         src_idx = self._get_src_permutation_idx(indices)
         tgt_idx = self._get_tgt_permutation_idx(indices)
-        src_masks = outputs["pred_masks"] # 
+        src_masks = outputs["pred_masks"]  #
         src_masks = src_masks[src_idx]
         masks = [t["masks"] for t in targets]
         # TODO use valid to mask invalid areas due to padding in loss
@@ -195,11 +210,13 @@ class SetCriterion(nn.Module):
         # ).squeeze(1)
         # ===================================================================================
         point_logits = src_masks.flatten(1)
-        point_labels = target_masks.flatten(1)       
+        point_labels = target_masks.flatten(1)
 
         losses = {
-            "loss_mask": sigmoid_ce_loss(point_logits, point_labels, num_masks), # sigmoid_focal_loss(point_logits, point_labels, num_masks), # 
-            "loss_dice": dice_loss(point_logits, point_labels, num_masks)
+            "loss_mask": sigmoid_ce_loss(
+                point_logits, point_labels, num_masks
+            ),  # sigmoid_focal_loss(point_logits, point_labels, num_masks), #
+            "loss_dice": dice_loss(point_logits, point_labels, num_masks),
         }
 
         del src_masks
@@ -226,8 +243,8 @@ class SetCriterion(nn.Module):
 
     def get_loss(self, loss, outputs, targets, indices, num_masks):
         loss_map = {
-            'labels': self.loss_labels,
-            'masks': self.loss_masks,
+            "labels": self.loss_labels,
+            "masks": self.loss_masks,
         }
         assert loss in loss_map, f"do you really want to compute {loss} loss?"
         return loss_map[loss](outputs, targets, indices, num_masks)
@@ -245,7 +262,9 @@ class SetCriterion(nn.Module):
 
         # Compute the average number of target boxes accross all nodes, for normalization purposes
         num_masks = sum(len(t["labels"]) for t in targets)
-        num_masks = torch.as_tensor([num_masks], dtype=torch.float, device=next(iter(outputs.values())).device)
+        num_masks = torch.as_tensor(
+            [num_masks], dtype=torch.float, device=next(iter(outputs.values())).device
+        )
         if is_dist_avail_and_initialized():
             torch.distributed.all_reduce(num_masks)
         num_masks = torch.clamp(num_masks / get_world_size(), min=1).item()
@@ -273,9 +292,9 @@ class SetCriterion(nn.Module):
             cls_label = torch.unique(mask)
             labels = cls_label[1:]
             binary_masks = binary_masks[labels]
-            targets.append({'masks': binary_masks, 'labels': labels})
+            targets.append({"masks": binary_masks, "labels": labels})
         return targets
-        
+
     def __repr__(self):
         head = "Criterion " + self.__class__.__name__
         body = [
@@ -301,8 +320,10 @@ class Criterion(object):
         self.weight = weight
         self.ignore_index = ignore_index
         self.smooth = 1e-5
-        self.ce_fn = nn.CrossEntropyLoss(weight=self.weight, ignore_index=self.ignore_index, reduction='none')
-    
+        self.ce_fn = nn.CrossEntropyLoss(
+            weight=self.weight, ignore_index=self.ignore_index, reduction="none"
+        )
+
     def get_loss(self, outputs, gt_masks):
         """This performs the loss computation.
         Parameters:
@@ -310,26 +331,25 @@ class Criterion(object):
              gt_masks: [bs, h_net_output, w_net_output]
         """
         loss_labels = 0.0
-        loss_masks = 0.0
         loss_dices = 0.0
         num = gt_masks.shape[0]
-        pred_logits = [outputs["pred_logits"].float()] # [bs, num_query, num_classes + 1]
-        pred_masks = [outputs['pred_masks'].float()] # [bs, num_query, h, w]
+        pred_logits = [outputs["pred_logits"].float()]  # [bs, num_query, num_classes + 1]
+        pred_masks = [outputs["pred_masks"].float()]  # [bs, num_query, h, w]
         targets = self._get_targets(gt_masks, pred_logits[0].shape[1], pred_logits[0].device)
-        for aux_output in outputs['aux_outputs']:            
+        for aux_output in outputs["aux_outputs"]:
             pred_logits.append(aux_output["pred_logits"].float())
             pred_masks.append(aux_output["pred_masks"].float())
 
-        gt_label = targets['labels'] # [bs, num_query]
-        gt_mask_list = targets['masks']
-        for mask_cls, pred_mask in zip(pred_logits, pred_masks):            
+        gt_label = targets["labels"]  # [bs, num_query]
+        gt_mask_list = targets["masks"]
+        for mask_cls, pred_mask in zip(pred_logits, pred_masks):
             loss_labels += F.cross_entropy(mask_cls.transpose(1, 2), gt_label)
             # loss_masks += self.focal_loss(pred_result, gt_masks.to(pred_result.device))
             loss_dices += self.dice_loss(pred_mask, gt_mask_list)
 
-        return loss_labels/num, loss_dices/num
+        return loss_labels / num, loss_dices / num
 
-    def binary_dice_loss(self, inputs, targets):      
+    def binary_dice_loss(self, inputs, targets):
         inputs = inputs.sigmoid()
         inputs = inputs.flatten(1)
         targets = targets.flatten(1)
@@ -338,15 +358,15 @@ class Criterion(object):
         loss = 1 - (numerator + 1) / (denominator + 1)
         return loss.mean()
 
-    def dice_loss(self, predict, targets):    
+    def dice_loss(self, predict, targets):
         bs = predict.shape[0]
         total_loss = 0
         for i in range(bs):
             pred_mask = predict[i]
             tgt_mask = targets[i].to(predict.device)
-            dice_loss_value = self.binary_dice_loss(pred_mask, tgt_mask) 
+            dice_loss_value = self.binary_dice_loss(pred_mask, tgt_mask)
             total_loss += dice_loss_value
-        return total_loss/bs
+        return total_loss / bs
 
     def focal_loss(self, preds, labels):
         """
@@ -371,7 +391,7 @@ class Criterion(object):
             mask_onehot = self._get_binary_mask(mask)
             cls_label = torch.unique(mask)
             labels = torch.full((num_query,), 0, dtype=torch.int64, device=gt_masks.device)
-            labels[:len(cls_label)] = cls_label           
+            labels[: len(cls_label)] = cls_label
             binary_masks.append(mask_onehot[cls_label])
             gt_labels.append(labels)
         return {"labels": torch.stack(gt_labels).to(device), "masks": binary_masks}

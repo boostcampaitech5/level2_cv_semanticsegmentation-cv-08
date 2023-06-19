@@ -20,7 +20,7 @@ from torch.autograd.function import once_differentiable
 
 try:
     import MultiScaleDeformableAttention as MSDA
-except ModuleNotFoundError as e:
+except ModuleNotFoundError:
     info_string = (
         "\n\nPlease compile MultiScaleDeformableAttention CUDA op with the following commands:\n"
         "\t`cd mask2former/modeling/pixel_decoder/ops`\n"

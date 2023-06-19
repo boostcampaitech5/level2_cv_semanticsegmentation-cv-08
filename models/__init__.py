@@ -14,5 +14,5 @@ __all__ = [
     "deconvnet",
     "hrnet",
     "hrnet_ocr",
-    "mask2former"
+    "mask2former",
 ]

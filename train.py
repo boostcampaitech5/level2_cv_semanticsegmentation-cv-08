@@ -13,7 +13,7 @@ import datasets
 import loss
 import models
 from runner import train
-from utils import CLASSES, read_json, CosineAnnealingWarmUpRestarts
+from utils import CLASSES, CosineAnnealingWarmUpRestarts, read_json
 
 
 def main(config):
@@ -54,8 +54,8 @@ def main(config):
 
     # Learning Rate Scheduler 정의
     if config.scheduler.type == "CosineAnnealingWarmUpRestarts":
-       lr_scheduler = CosineAnnealingWarmUpRestarts(optimizer, **config.scheduler.parameters)
-    else: 
+        lr_scheduler = CosineAnnealingWarmUpRestarts(optimizer, **config.scheduler.parameters)
+    else:
         lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
             optimizer, **config.scheduler.parameters
         )

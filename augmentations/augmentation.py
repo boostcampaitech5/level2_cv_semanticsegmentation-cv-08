@@ -1,6 +1,6 @@
 import numpy as np
 import torchvision.transforms as transform
-from albumentations import Compose, CenterCrop, HorizontalFlip, Normalize, Resize, Rotate
+from albumentations import CenterCrop, Compose, HorizontalFlip, Normalize, Resize, Rotate
 
 
 def base_augmentation(resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
@@ -30,8 +30,12 @@ def rotate_flip(resize, limit=30, norm=False, mean=0.12397208368416988, std=0.16
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
     return Compose(transforms)
 
+
 def center_crop(resize, crop_resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
-    transforms = [CenterCrop(height=crop_resize, width=crop_resize, p=0.5), Resize(resize, resize, p=1)]
+    transforms = [
+        CenterCrop(height=crop_resize, width=crop_resize, p=0.5),
+        Resize(resize, resize, p=1),
+    ]
     if norm:
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
     return Compose(transforms)

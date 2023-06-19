@@ -9,11 +9,11 @@
 # Modified by Bowen Cheng from https://github.com/SwinTransformer/Swin-Transformer-Semantic-Segmentation/blob/main/mmseg/models/backbones/swin_transformer.py
 
 import numpy as np
-from addict import Dict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
+from addict import Dict
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 
 # from detectron2.modeling import BACKBONE_REGISTRY, Backbone, ShapeSpec
@@ -95,13 +95,12 @@ class WindowAttention(nn.Module):
         attn_drop=0.0,
         proj_drop=0.0,
     ):
-
         super().__init__()
         self.dim = dim
         self.window_size = window_size  # Wh, Ww
         self.num_heads = num_heads
         head_dim = dim // num_heads
-        self.scale = head_dim ** -0.5 if qk_scale is None else qk_scale
+        self.scale = head_dim**-0.5 if qk_scale is None else qk_scale
 
         # define a parameter table of relative position bias
         self.relative_position_bias_table = nn.Parameter(
@@ -589,7 +588,7 @@ class SwinTransformer(nn.Module):
         self.layers = nn.ModuleList()
         for i_layer in range(self.num_layers):
             layer = BasicLayer(
-                dim=int(embed_dim * 2 ** i_layer),
+                dim=int(embed_dim * 2**i_layer),
                 depth=depths[i_layer],
                 num_heads=num_heads[i_layer],
                 window_size=window_size,
@@ -605,7 +604,7 @@ class SwinTransformer(nn.Module):
             )
             self.layers.append(layer)
 
-        num_features = [int(embed_dim * 2 ** i) for i in range(self.num_layers)]
+        num_features = [int(embed_dim * 2**i) for i in range(self.num_layers)]
         self.num_features = num_features
 
         # add a norm layer for each output
@@ -686,7 +685,6 @@ class SwinTransformer(nn.Module):
 
 class D2SwinTransformer(SwinTransformer):
     def __init__(self, cfg):
-
         pretrain_img_size = cfg.MODEL.SWIN.PRETRAIN_IMG_SIZE
         patch_size = cfg.MODEL.SWIN.PATCH_SIZE
         in_chans = 3
@@ -760,9 +758,14 @@ class D2SwinTransformer(SwinTransformer):
     def output_shape(self):
         backbone_feature_shape = dict()
         for name in self._out_features:
-                backbone_feature_shape[name] = Dict({'channel': self._out_feature_channels[name], 'stride': self._out_feature_strides[name]})
+            backbone_feature_shape[name] = Dict(
+                {
+                    "channel": self._out_feature_channels[name],
+                    "stride": self._out_feature_strides[name],
+                }
+            )
         return backbone_feature_shape
-    
+
     @property
     def size_divisibility(self):
         return 32
