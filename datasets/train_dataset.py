@@ -112,7 +112,7 @@ class XRayDataset(Dataset):
             label[..., class_ind] = class_label
 
         if self.config.copy_paste.k != 0 and self.is_train:
-            randoms = random.choices([i for i in range(len(self))], k=self.config.copy_paste.k)
+            randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
             for i in randoms:
                 target_image = cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.
                 target_label_path = os.path.join(self.config.label_dir, self.labelnames[i])
@@ -231,7 +231,7 @@ class XRayDatasetV2(Dataset):
             label[..., class_ind] = class_label
 
         if self.config.copy_paste.k != 0 and self.is_train:
-            randoms = random.choices([i for i in range(len(self))], k=self.config.copy_paste.k)
+            randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
             for i in randoms:
                 target_image = cv2.imread(self.filenames[i]) / 255.
                 target_label_path = self.filenames.replace("DCM", "outputs_json").replace("png", "json")
@@ -368,7 +368,7 @@ class XRayDatasetFast(Dataset):
         label = np.unpackbits(label).reshape(2048, 2048, 29)
 
         if self.config.copy_paste.k != 0 and self.is_train:
-            randoms = random.choices([i for i in range(len(self))], k=self.config.copy_paste.k)
+            randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
             for i in randoms:
                 target_image = cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.
                 target_label_path = os.path.join(self.config.label_dir, self.labelnames[i])

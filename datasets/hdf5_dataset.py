@@ -64,7 +64,7 @@ class Hdf5Dataset(Dataset):
             label = label.transpose(1, 2, 0)
 
             if self.config.copy_paste.k != 0 and self.is_train:
-                randoms = random.choices([i for i in range(len(self))], k=self.config.copy_paste.k)
+                randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
                 for i in randoms:
                     target_image = cv2.imread(self.filenames[i]) / 255.
                     target_label_path = self.filenames[i].replace("DCM", "outputs_json").replace("png", "json")

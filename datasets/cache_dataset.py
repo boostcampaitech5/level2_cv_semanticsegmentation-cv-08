@@ -53,7 +53,7 @@ class CacheDataset(Dataset):
             label = np.array(label).transpose(1, 2, 0)
 
             if self.config.copy_paste.k != 0 and self.is_train:
-                randoms = random.choices([i for i in range(800)], k=self.config.copy_paste.k)
+                randoms = random.choices([i for i in range(self.filenames)], k=self.config.copy_paste.k)
                 for i in randoms:
                     target_image = cv2.imread(self.filenames[i]) / 255.
                     target_label_path = self.filenames[i].replace("DCM", "outputs_json").replace("png", "json")
@@ -90,6 +90,7 @@ class CacheDataset(Dataset):
                             new_image = cv2.resize(new_image, 
                                                 image.shape[:2], 
                                                 interpolation=cv2.INTER_AREA)
+                            mask = cv2.resize(mask, image.shape[:2], interpolation=cv2.INTER_AREA)
                             if image.shape[-1] == 3:
                                 image[y:y+max[1]-min[1], x:x+max[0]-min[0], ...] = new_image[min[1]:max[1], min[0]:max[0], ...]
                             else:
