@@ -24,10 +24,9 @@ def test(config, model, data_loader, thr=0.5):
 
         for step, (images, image_names) in tqdm(enumerate(data_loader), total=len(data_loader)):
             images = images.cuda()
-            outputs = model(images)[0]
+            outputs = model(images)
             if isinstance(outputs, collections.OrderedDict):
                 outputs = outputs["out"]
-
             # restore original size
             outputs = F.interpolate(outputs, size=(2048, 2048), mode="bilinear")
             outputs = torch.sigmoid(outputs)

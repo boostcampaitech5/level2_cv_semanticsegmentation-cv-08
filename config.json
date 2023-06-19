@@ -6,14 +6,14 @@
         },
         "smp": {
             "model": "UnetPlusPlus",
-            "encoder_name": "timm-regnety_040",
+            "encoder_name": "timm-regnety_320",
             "encoder_weights": "imagenet"
         }
     },
-    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/IoU",
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/IoU",
-    "model_file_name": "last.pth",
-    "resume_from": false,
+    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_2048_batch-16_copypaste",
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_2048_batch-16_copypaste",
+    "model_file_name": "best.pth",
+    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_2048_batch-16_copypaste/best.pth",
     "dataset": "Hdf5Dataset",
     "image_dir": "/opt/ml/data/train/DCM",
     "label_dir": "/opt/ml/data/train/outputs_json",
@@ -22,16 +22,17 @@
     "valid_json_path": "/opt/ml/data/valid_split.json",
     "train_cache_data_dir": "/opt/ml/cache_data_512/train",
     "valid_cache_data_dir": "/opt/ml/cache_data_512/valid",
-    "train_hdf5_data_dir": "/opt/ml/hdf5_512/train",
-    "valid_hdf5_data_dir": "/opt/ml/hdf5_512/valid",
+    "train_hdf5_data_dir": "/opt/ml/hdf5_2048_gray/train",
+    "valid_hdf5_data_dir": "/opt/ml/hdf5_2048_gray/valid",
     "epochs": 120,
     "train": {
-        "batch_size": 8,
-        "num_workers": 8,
+        "batch_size": 1,
+        "num_workers": 2,
         "augmentations": {
-            "name": "base_augmentation",
+            "name": "rotate_flip",
             "parameters": {
-                "resize": 512
+                "resize": 2048,
+                "p_rotate": 0.3
             }
         }
     },
@@ -41,50 +42,51 @@
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
-                "resize": 512
+                "resize": 2048
             }
         }
     },
     "test": {
         "batch_size": 1,
-        "num_workers": 8,
+        "num_workers": 2,
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
-                "resize": 512
+                "resize": 2048
             }
         }
     },
     "optimizer": {
-        "type": "Adam",
+        "type": "AdamW",
         "parameters": {
-            "lr": 0.0001,
+            "lr": 1e-3,
             "weight_decay": 1e-06
         }
     },
-    "criterion": "IoULoss",
+    "criterion": "BCEDiceFocalLoss",
     "scheduler": {
-        "type": "MultiStepLR",
+        "type": "CosineAnnealingWarmRestarts",
         "parameters": {
-            "milestones": [
-                100,
-                110
-            ],
-            "gamma": 0.5
+            "T_0": 5,
+            "T_mult": 1,
+            "eta_min": 1e-05
         }
     },
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
-    "patience_limit": 200,
-    "accumulation_step": 1,
+    "patience_limit": 20,
+    "accumulation_step": 16,
     "fp16": true,
     "wandb": {
         "use": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "IoU"
+        "run_name": "regnety_320_2048_batch-16_copypaste"
     },
     "gray": true,
-    "validation": true
+    "validation": true,
+    "copy_paste": {
+        "k": 3
+    }
 }

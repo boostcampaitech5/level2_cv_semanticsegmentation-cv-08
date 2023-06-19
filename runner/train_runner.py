@@ -43,6 +43,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
         st = time.time()
 
         if config.wandb.use:
+            wandb.log({"train/learning_rate" : lr_scheduler.get_last_lr()[0]})
             wandb.log({"epoch": epoch})
 
         model.train()

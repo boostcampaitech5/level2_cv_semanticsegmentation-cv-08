@@ -30,7 +30,7 @@ def main(config):
             project=config.wandb.project,
             name=config.wandb.run_name,
             config=config,
-            # id="66io15xr",
+            # id="4jdhzoxq",
             # resume="must"
         )
 

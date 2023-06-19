@@ -69,20 +69,20 @@ class BCEDiceLoss:
         loss = bce * self.bce_weight + dice * (1 - self.bce_weight)
         return loss
 
-class BCEDiceIoULoss:
-    def __init__(self, bce_weight=0.8, dice_weight=1., iou_weight=1.):
+class BCEDiceFocalLoss:
+    def __init__(self, bce_weight=1., dice_weight=1., focal_weight=1.):
         self.bce_weight = bce_weight
         self.dice_weight = dice_weight
-        self.iou_weight = iou_weight
+        self.focal_weight = focal_weight
         self.dice_loss = DiceLoss(sigmoid=False)
-        self.iou_loss = IoULoss(sigmoid=False)
+        self.focal_loss = FocalLoss()
 
     def __call__(self, pred, target):
         bce = F.binary_cross_entropy_with_logits(pred, target)
+        focal = self.focal_loss(pred, target)
         pred = F.sigmoid(pred)
         dice = self.dice_loss(pred, target)
-        iou = self.iou_loss(pred, target)
-        loss = bce * self.bce_weight + dice * self.dice_weight + iou * self.iou_weight
+        loss = (bce * self.bce_weight + dice * self.dice_weight + focal * self.focal_weight) / (self.bce_weight + self.dice_weight + self.focal_weight)
         return loss    
 
 

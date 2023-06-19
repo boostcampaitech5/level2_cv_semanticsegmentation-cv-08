@@ -12,11 +12,26 @@ import augmentations
 from datasets import XRayInferenceDataset
 from runner import test
 from utils import CLASSES, decode_rle_to_mask, label2rgb, read_json
-
+import segmentation_models_pytorch as smp
+import models
 
 def load_local_model():
     with st.spinner("Loading model..."):
-        state.trained_model = torch.load(state.config.inference_model_dir)
+        if os.path.splitext(state.config.inference_model_dir)[1] == ".pt":
+            state.trained_model = torch.load(state.config.inference_model_dir)
+        else:
+            if state.config.base.use == "smp":
+                state.trained_model = getattr(smp, state.config.base.smp.model)(
+                    encoder_name=state.config.base.smp.encoder_name,
+                    encoder_weights=state.config.base.smp.encoder_weights,
+                    in_channels=3 if not state.config.gray else 1,
+                    classes=len(CLASSES),
+                )
+            else:
+                state.trained_model = getattr(models, state.config.base.pytorch.model)(len(CLASSES))
+            state.trained_model.load_state_dict(
+                torch.load(os.path.join(state.config.save_model_dir, state.config.model_file_name))["model_state_dict"]
+            )  
     st.success("Model loaded successfully!")
 
 
@@ -37,7 +52,7 @@ def load_dataset():
 
 def predict_all():
     with st.spinner("Running predictions..."):
-        rles, filename_and_class = test(state.config, state.trained_model, state.test_loader)
+        rles, filename_and_class = test(state.config, state.trained_model, state.test_loader, thr=0.5)
         classes, filename = zip(*[x.split("_") for x in filename_and_class])
         image_name = [os.path.basename(f) for f in filename]
         df = pd.DataFrame(
@@ -69,8 +84,8 @@ def visualise():
         class_fname = state.prediction_cache["filename_and_class"][i * len(CLASSES)]
         image = cv2.imread(os.path.join(state.config.test_image_dir, class_fname.split("_")[1]))
         seg_map = label2rgb(preds)
-        image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
-        seg_map = cv2.resize(seg_map, (512, 512), interpolation=cv2.INTER_AREA)
+        # image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_AREA)
+        # seg_map = cv2.resize(seg_map, (512, 512), interpolation=cv2.INTER_AREA)
         overaid_image = cv2.addWeighted(image, 0.4, seg_map, 0.5, 0)
         class_fname.split("_")[1]
 

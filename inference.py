@@ -21,24 +21,21 @@ from utils import CLASSES, read_json
 
 def main(config):
     # Load Model
-    if config.base.use == "smp":
-        model = getattr(smp, config.base.smp.model)(
-            encoder_name=config.base.smp.encoder_name,
-            encoder_weights=config.base.smp.encoder_weights,
-            in_channels=3 if not config.gray else 1,
-            classes=len(CLASSES),
-        )
+    if os.path.splitext(config.inference_model_dir)[1] == ".pt":
+        model = torch.load(config.inference_model_dir)
     else:
-        model = getattr(models, config.base.pytorch.model)(len(CLASSES))
-
-    if config.resume_from:
-        print(f"Load {config.resume_from}")
-        if os.path.splitext(config.resume_from)[1] == ".pt":
-            model = torch.load(config.resume_from)
-    else:
+        if config.base.use == "smp":
+            model = getattr(smp, config.base.smp.model)(
+                encoder_name=config.base.smp.encoder_name,
+                encoder_weights=config.base.smp.encoder_weights,
+                in_channels=3 if not config.gray else 1,
+                classes=len(CLASSES),
+            )
+        else:
+            model = getattr(models, config.base.pytorch.model)(len(CLASSES))
         model.load_state_dict(
-            torch.load(os.path.join(config.save_model_dir, config.model_file_name)["model_state_dict"])
-        )
+            torch.load(os.path.join(config.save_model_dir, config.model_file_name))["model_state_dict"]
+        )  
 
     # Augmentation
     tf = getattr(augmentations, config.test.augmentations.name)(
