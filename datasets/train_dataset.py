@@ -175,7 +175,6 @@ class XRayDatasetV2(Dataset):
         self.image_dir = config.image_dir
         self.label_dir = config.label_dir
         self.transform = transforms
-        self.labelnames = np.array(glob(os.path.join(self.label_dir, "*", "*.json")))
         self.filenames = np.array(glob(os.path.join(self.image_dir, "*", "*.png")))
 
         if is_train:
@@ -235,7 +234,7 @@ class XRayDatasetV2(Dataset):
             randoms = random.choices([i for i in range(len(self))], k=self.config.copy_paste.k)
             for i in randoms:
                 target_image = cv2.imread(self.filenames[i]) / 255.
-                target_label_path = self.labelnames[i]
+                target_label_path = self.filenames.replace("DCM", "outputs_json").replace("png", "json")
 
                 with open(target_label_path, "r") as f:
                     target_annotations = json.load(f)

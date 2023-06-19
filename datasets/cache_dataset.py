@@ -19,7 +19,6 @@ class CacheDataset(Dataset):
         self.config = config
         self.is_train = is_train
         self.transforms = transforms
-        self.labelnames = np.array(glob(os.path.join(config.label_dir, "*", "*.json")))
         self.filenames = np.array(glob(os.path.join(config.image_dir, "*", "*.png")))
 
 
@@ -57,7 +56,7 @@ class CacheDataset(Dataset):
                 randoms = random.choices([i for i in range(800)], k=self.config.copy_paste.k)
                 for i in randoms:
                     target_image = cv2.imread(self.filenames[i]) / 255.
-                    target_label_path = self.labelnames[i]
+                    target_label_path = self.filenames[i].replace("DCM", "outputs_json").replace("png", "json")
 
                     with open(target_label_path, "r") as f:
                         target_annotations = json.load(f)
