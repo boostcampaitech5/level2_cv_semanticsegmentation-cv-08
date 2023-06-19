@@ -1,20 +1,21 @@
 # python native
+import json
 import os
+import random
 from glob import glob
+
+import cv2
 
 # external library
 import h5py
 import numpy as np
-from utils.util import CLASS2IND, CLASSES
-
-from PIL import Image, ImageDraw
-import random
-import cv2
-import json
 
 # torch
 import torch
+from PIL import Image, ImageDraw
 from torch.utils.data import Dataset
+
+from utils.util import CLASS2IND
 
 
 class Hdf5Dataset(Dataset):
@@ -24,7 +25,6 @@ class Hdf5Dataset(Dataset):
         self.transforms = transforms
         self.file = None
         self.filenames = np.array(glob(os.path.join(config.image_dir, "*", "*.png")))
-
 
         if self.is_train:
             self.data_dir = config.train_hdf5_data_dir
@@ -64,10 +64,14 @@ class Hdf5Dataset(Dataset):
             label = label.transpose(1, 2, 0)
 
             if self.config.copy_paste.k != 0 and self.is_train:
-                randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
+                randoms = random.choices(
+                    [i for i in range(len(self.filenames))], k=self.config.copy_paste.k
+                )
                 for i in randoms:
-                    target_image = cv2.imread(self.filenames[i]) / 255.
-                    target_label_path = self.filenames[i].replace("DCM", "outputs_json").replace("png", "json")
+                    target_image = cv2.imread(self.filenames[i]) / 255.0
+                    target_label_path = (
+                        self.filenames[i].replace("DCM", "outputs_json").replace("png", "json")
+                    )
 
                     with open(target_label_path, "r") as f:
                         target_annotations = json.load(f)
@@ -77,40 +81,45 @@ class Hdf5Dataset(Dataset):
                         target_c = ann["label"]
                         target_c = CLASS2IND[target_c]
                         if target_c == 19 or target_c == 20 or target_c == 25 or target_c == 26:
-                            max, min = self.get_coord(ann['points'])
-                            scale = (image.shape[0] / 2048)
+                            max, min = self.get_coord(ann["points"])
+                            scale = image.shape[0] / 2048
                             max = [int(i * scale) for i in max]
                             min = [int(i * scale) for i in min]
-                            range_max = int(1800. * scale)
-                            range_min = int(100. * scale)
+                            range_max = int(1800.0 * scale)
+                            range_min = int(100.0 * scale)
                             x = random.randint(range_min, range_max)
                             y = random.randint(range_min, range_max)
-                            alpha = int(random.randint(25,50) * scale)
-                            # 0. check whether generated (x,y) coordinate is in the background 
+                            alpha = int(random.randint(25, 50) * scale)
+                            # 0. check whether generated (x,y) coordinate is in the background
                             bone_area_x = [i for i in range(int(400 * scale), int(1600 * scale))]
                             while x in bone_area_x:
-                                x = random.randint(int(100 * scale),int(1800 * scale))
-                            x -= alpha      
+                                x = random.randint(int(100 * scale), int(1800 * scale))
+                            x -= alpha
                             # 1. create mask for new image
-                            img = Image.new('L', target_image.shape[:2], 0)
-                            ImageDraw.Draw(img).polygon(ann['points'], outline=0, fill=1)
+                            img = Image.new("L", target_image.shape[:2], 0)
+                            ImageDraw.Draw(img).polygon(ann["points"], outline=0, fill=1)
                             mask = np.array(img)
                             # 2. paste maskout poly to source image
                             new_image = cv2.bitwise_or(target_image, target_image, mask=mask)
-                            new_image = cv2.resize(new_image, 
-                                                image.shape[:2], 
-                                                interpolation=cv2.INTER_AREA)
+                            new_image = cv2.resize(
+                                new_image, image.shape[:2], interpolation=cv2.INTER_AREA
+                            )
                             mask = cv2.resize(mask, image.shape[:2], interpolation=cv2.INTER_AREA)
                             if image.shape[-1] == 3:
-                                image[y:y+max[1]-min[1], x:x+max[0]-min[0], ...] = new_image[min[1]:max[1], min[0]:max[0], ...]
+                                image[
+                                    y : y + max[1] - min[1], x : x + max[0] - min[0], ...
+                                ] = new_image[min[1] : max[1], min[0] : max[0], ...]
                             else:
-                                image[y:y+max[1]-min[1], x:x+max[0]-min[0], 0] = new_image[min[1]:max[1], min[0]:max[0], 0]                        
+                                image[
+                                    y : y + max[1] - min[1], x : x + max[0] - min[0], 0
+                                ] = new_image[min[1] : max[1], min[0] : max[0], 0]
 
                             # 3. update label
                             ori_label = label[..., target_c]
-                            ori_label[y:y+max[1]-min[1], x:x+max[0]-min[0]] = mask[min[1]:max[1], min[0]:max[0]]
+                            ori_label[y : y + max[1] - min[1], x : x + max[0] - min[0]] = mask[
+                                min[1] : max[1], min[0] : max[0]
+                            ]
                             label[..., target_c] = ori_label
-
 
             inputs = {"image": image, "mask": label}
             result = self.transforms(**inputs)

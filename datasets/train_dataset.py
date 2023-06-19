@@ -1,6 +1,7 @@
 # python native
 import json
 import os
+import random
 from glob import glob
 
 # external library
@@ -9,13 +10,13 @@ import numpy as np
 
 # torch
 import torch
+from PIL import Image, ImageDraw
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
 
 # utils
 from utils.util import CLASS2IND, CLASSES
-from PIL import Image, ImageDraw
-import random
+
 
 class XRayDataset(Dataset):
     def __init__(self, config, is_train=True, transforms=None):
@@ -70,7 +71,7 @@ class XRayDataset(Dataset):
 
     def __len__(self):
         return len(self.filenames)
-    
+
     def get_coord(self, polygon):
         polygon = polygon
         for i in range(len(polygon)):
@@ -78,7 +79,7 @@ class XRayDataset(Dataset):
         polygon_np = np.array(polygon)
         max = np.max(polygon_np, axis=0)
         min = np.min(polygon_np, axis=0)
-        return max, min    
+        return max, min
 
     def __getitem__(self, item):
         image_name = self.filenames[item]
@@ -112,9 +113,13 @@ class XRayDataset(Dataset):
             label[..., class_ind] = class_label
 
         if self.config.copy_paste.k != 0 and self.is_train:
-            randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
+            randoms = random.choices(
+                [i for i in range(len(self.filenames))], k=self.config.copy_paste.k
+            )
             for i in randoms:
-                target_image = cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.
+                target_image = (
+                    cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.0
+                )
                 target_label_path = os.path.join(self.config.label_dir, self.labelnames[i])
 
                 with open(target_label_path, "r") as f:
@@ -126,27 +131,33 @@ class XRayDataset(Dataset):
                     target_c = CLASS2IND[target_c]
                     if target_c == 19 or target_c == 20 or target_c == 25 or target_c == 26:
                         points = np.array(ann["points"])
-                        max, min = self.get_coord(ann['points'])
-                        x = random.randint(100,1800)
-                        y = random.randint(100,1800)
-                        alpha = random.randint(25,50)
+                        max, min = self.get_coord(ann["points"])
+                        x = random.randint(100, 1800)
+                        y = random.randint(100, 1800)
+                        alpha = random.randint(25, 50)
                         x -= alpha
-                        
+
                         # 1. create mask for new image
-                        img = Image.new('L', target_image.shape[:2], 0)
-                        ImageDraw.Draw(img).polygon(ann['points'], outline=0, fill=1)
+                        img = Image.new("L", target_image.shape[:2], 0)
+                        ImageDraw.Draw(img).polygon(ann["points"], outline=0, fill=1)
                         mask = np.array(img)
-                        
+
                         # 2. paste maskout poly to source image
                         new_image = cv2.bitwise_or(target_image, target_image, mask=mask)
                         if image.shape[-1] == 3:
-                            image[y:y+max[1]-min[1], x:x+max[0]-min[0], ...] = new_image[min[1]:max[1], min[0]:max[0], ...]
+                            image[
+                                y : y + max[1] - min[1], x : x + max[0] - min[0], ...
+                            ] = new_image[min[1] : max[1], min[0] : max[0], ...]
                         else:
-                            image[y:y+max[1]-min[1], x:x+max[0]-min[0], 0] = new_image[min[1]:max[1], min[0]:max[0], 0]
+                            image[y : y + max[1] - min[1], x : x + max[0] - min[0], 0] = new_image[
+                                min[1] : max[1], min[0] : max[0], 0
+                            ]
 
                         # 3. update label
                         ori_label = label[..., target_c]
-                        ori_label[y:y+max[1]-min[1], x:x+max[0]-min[0]] = mask[min[1]:max[1], min[0]:max[0]]
+                        ori_label[y : y + max[1] - min[1], x : x + max[0] - min[0]] = mask[
+                            min[1] : max[1], min[0] : max[0]
+                        ]
                         label[..., target_c] = ori_label
 
         if self.transforms is not None:
@@ -231,10 +242,14 @@ class XRayDatasetV2(Dataset):
             label[..., class_ind] = class_label
 
         if self.config.copy_paste.k != 0 and self.is_train:
-            randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
+            randoms = random.choices(
+                [i for i in range(len(self.filenames))], k=self.config.copy_paste.k
+            )
             for i in randoms:
-                target_image = cv2.imread(self.filenames[i]) / 255.
-                target_label_path = self.filenames.replace("DCM", "outputs_json").replace("png", "json")
+                target_image = cv2.imread(self.filenames[i]) / 255.0
+                target_label_path = self.filenames.replace("DCM", "outputs_json").replace(
+                    "png", "json"
+                )
 
                 with open(target_label_path, "r") as f:
                     target_annotations = json.load(f)
@@ -245,27 +260,33 @@ class XRayDatasetV2(Dataset):
                     target_c = CLASS2IND[target_c]
                     if target_c == 19 or target_c == 20 or target_c == 25 or target_c == 26:
                         points = np.array(ann["points"])
-                        max, min = self.get_coord(ann['points'])
-                        x = random.randint(100,1800)
-                        y = random.randint(100,1800)
-                        alpha = random.randint(25,50)
+                        max, min = self.get_coord(ann["points"])
+                        x = random.randint(100, 1800)
+                        y = random.randint(100, 1800)
+                        alpha = random.randint(25, 50)
                         x -= alpha
-                        
+
                         # 1. create mask for new image
-                        img = Image.new('L', target_image.shape[:2], 0)
-                        ImageDraw.Draw(img).polygon(ann['points'], outline=0, fill=1)
+                        img = Image.new("L", target_image.shape[:2], 0)
+                        ImageDraw.Draw(img).polygon(ann["points"], outline=0, fill=1)
                         mask = np.array(img)
-                        
+
                         # 2. paste maskout poly to source image
                         new_image = cv2.bitwise_or(target_image, target_image, mask=mask)
                         if image.shape[-1] == 3:
-                            image[y:y+max[1]-min[1], x:x+max[0]-min[0], ...] = new_image[min[1]:max[1], min[0]:max[0], ...]
+                            image[
+                                y : y + max[1] - min[1], x : x + max[0] - min[0], ...
+                            ] = new_image[min[1] : max[1], min[0] : max[0], ...]
                         else:
-                            image[y:y+max[1]-min[1], x:x+max[0]-min[0], 0] = new_image[min[1]:max[1], min[0]:max[0], 0]
+                            image[y : y + max[1] - min[1], x : x + max[0] - min[0], 0] = new_image[
+                                min[1] : max[1], min[0] : max[0], 0
+                            ]
 
                         # 3. update label
                         ori_label = label[..., target_c]
-                        ori_label[y:y+max[1]-min[1], x:x+max[0]-min[0]] = mask[min[1]:max[1], min[0]:max[0]]
+                        ori_label[y : y + max[1] - min[1], x : x + max[0] - min[0]] = mask[
+                            min[1] : max[1], min[0] : max[0]
+                        ]
                         label[..., target_c] = ori_label
 
         if self.transforms is not None:
@@ -368,9 +389,13 @@ class XRayDatasetFast(Dataset):
         label = np.unpackbits(label).reshape(2048, 2048, 29)
 
         if self.config.copy_paste.k != 0 and self.is_train:
-            randoms = random.choices([i for i in range(len(self.filenames))], k=self.config.copy_paste.k)
+            randoms = random.choices(
+                [i for i in range(len(self.filenames))], k=self.config.copy_paste.k
+            )
             for i in randoms:
-                target_image = cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.
+                target_image = (
+                    cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.0
+                )
                 target_label_path = os.path.join(self.config.label_dir, self.labelnames[i])
 
                 with open(target_label_path, "r") as f:
@@ -381,28 +406,34 @@ class XRayDatasetFast(Dataset):
                     target_c = ann["label"]
                     target_c = CLASS2IND[target_c]
                     if target_c == 19 or target_c == 20 or target_c == 25 or target_c == 26:
-                        points = np.array(ann["points"])
-                        max, min = self.get_coord(ann['points'])
-                        x = random.randint(100,1800)
-                        y = random.randint(100,1800)
-                        alpha = random.randint(25,50)
+                        np.array(ann["points"])
+                        max, min = self.get_coord(ann["points"])
+                        x = random.randint(100, 1800)
+                        y = random.randint(100, 1800)
+                        alpha = random.randint(25, 50)
                         x -= alpha
-                        
+
                         # 1. create mask for new image
-                        img = Image.new('L', target_image.shape[:2], 0)
-                        ImageDraw.Draw(img).polygon(ann['points'], outline=0, fill=1)
+                        img = Image.new("L", target_image.shape[:2], 0)
+                        ImageDraw.Draw(img).polygon(ann["points"], outline=0, fill=1)
                         mask = np.array(img)
-                        
+
                         # 2. paste maskout poly to source image
                         new_image = cv2.bitwise_or(target_image, target_image, mask=mask)
                         if image.shape[-1] == 3:
-                            image[y:y+max[1]-min[1], x:x+max[0]-min[0], ...] = new_image[min[1]:max[1], min[0]:max[0], ...]
+                            image[
+                                y : y + max[1] - min[1], x : x + max[0] - min[0], ...
+                            ] = new_image[min[1] : max[1], min[0] : max[0], ...]
                         else:
-                            image[y:y+max[1]-min[1], x:x+max[0]-min[0], 0] = new_image[min[1]:max[1], min[0]:max[0], 0]
+                            image[y : y + max[1] - min[1], x : x + max[0] - min[0], 0] = new_image[
+                                min[1] : max[1], min[0] : max[0], 0
+                            ]
 
                         # 3. update label
                         ori_label = label[..., target_c]
-                        ori_label[y:y+max[1]-min[1], x:x+max[0]-min[0]] = mask[min[1]:max[1], min[0]:max[0]]
+                        ori_label[y : y + max[1] - min[1], x : x + max[0] - min[0]] = mask[
+                            min[1] : max[1], min[0] : max[0]
+                        ]
                         label[..., target_c] = ori_label
 
         if self.transforms is not None:
