@@ -1,3 +1,4 @@
+from .MaskFormerModel import mask2former
 from .backbone import resnet, swin
 from .pixel_decoder import msdeformattn
 from .transformer_decoder import (
@@ -12,6 +13,7 @@ https://github.com/zzubqh/Mask2Former-Simplify
 """
 
 __all__ = [
+    "mask2former",
     "hrnMaskFormerModelet",
     "resnet",
     "swin",
