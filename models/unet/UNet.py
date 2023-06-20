@@ -2,14 +2,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from layers import unetConv2, unetUp, unetUp_origin
 from init_weights import init_weights
-from torchvision import models
-import numpy as np
+from layers import unetConv2, unetUp
+
 
 class UNet(nn.Module):
-
-    def __init__(self, in_channels=3, n_classes=1, feature_scale=4, is_deconv=True, is_batchnorm=True):
+    def __init__(
+        self, in_channels=3, n_classes=1, feature_scale=4, is_deconv=True, is_batchnorm=True
+    ):
         super(UNet, self).__init__()
         self.is_deconv = is_deconv
         self.in_channels = in_channels
@@ -46,11 +46,11 @@ class UNet(nn.Module):
         # initialise weights
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                init_weights(m, init_type='kaiming')
+                init_weights(m, init_type="kaiming")
             elif isinstance(m, nn.BatchNorm2d):
-                init_weights(m, init_type='kaiming')
+                init_weights(m, init_type="kaiming")
 
-    def dotProduct(self,seg,cls):
+    def dotProduct(self, seg, cls):
         B, N, H, W = seg.size()
         seg = seg.view(B, N, H * W)
         final = torch.einsum("ijk,ij->ijk", [seg, cls])

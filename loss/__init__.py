@@ -1,6 +1,6 @@
 from .loss import *
-from .msssimLoss import *
 from .metric import dice_coef
+from .msssimLoss import *
 
 __all__ = [
     "BCEWithLogitsLoss",

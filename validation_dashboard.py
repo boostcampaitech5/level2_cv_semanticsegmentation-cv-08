@@ -1,25 +1,24 @@
+import os
+
 import cv2
 import numpy as np
+import segmentation_models_pytorch as smp
 import streamlit as st
 import torch
 import torch.nn.functional as F
 from streamlit import session_state as state
-import os
 
 import augmentations
-from utils import label2rgb, read_json, CLASSES
 from datasets import train_dataset
-
 from loss.metric import dice_coef
-
 from models.encoder.swin_encoder import register_encoder
-import segmentation_models_pytorch as smp
+from utils import CLASSES, label2rgb, read_json
 
 
 def load_local_model():
     with st.spinner("Loading model..."):
         register_encoder()
-        
+
         state.trained_model = getattr(smp, state.config.base.smp.model)(
             encoder_name=state.config.base.smp.encoder_name,
             encoder_weights=state.config.base.smp.encoder_weights,
@@ -28,8 +27,12 @@ def load_local_model():
             in_channels=3,
             classes=29,
         )
-        
-        state.trained_model.load_state_dict(torch.load(os.path.join(state.config.inference_model_dir, state.config.model_file_name))['model_state_dict'])
+
+        state.trained_model.load_state_dict(
+            torch.load(
+                os.path.join(state.config.inference_model_dir, state.config.model_file_name)
+            )["model_state_dict"]
+        )
     st.success("Model loaded successfully!")
 
 
@@ -37,7 +40,9 @@ def load_dataset(dataset_type):
     tf = getattr(augmentations, state.config.valid.augmentations.name)(
         **state.config.valid.augmentations.parameters
     )
-    valid_dataset = getattr(train_dataset, dataset_type)(state.config, is_train=False, transforms=tf)
+    valid_dataset = getattr(train_dataset, dataset_type)(
+        state.config, is_train=False, transforms=tf
+    )
     attr = {
         "XRayDataset": "filenames",
         "XRayDatasetV2": "fnames",
@@ -61,18 +66,18 @@ def predict(idx, thr=0.65):
             # restore original size
             label = torch.unsqueeze(label, 0)
             label = F.interpolate(label, size=(2048, 2048), mode="bilinear")
-            
+
             output = F.interpolate(output, size=(2048, 2048), mode="bilinear")
             output = torch.sigmoid(output)
             output = (output > thr).detach().cpu()
-            
+
             dice = dice_coef(label, output)
-            
+
             dice_per_class = {c: d.item() for c, d in zip(CLASSES, dice[0])}
             for k, v in dice_per_class.items():
                 print(k, ":", v)
             print(torch.mean(dice))
-        
+
             output = output.numpy()[0]
 
             false_positive = np.where(label - output < 0, 1, 0)[0]
