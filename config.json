@@ -7,8 +7,12 @@
         },
         "smp": {
             "model": "UnetPlusPlus",
-            "encoder_name": "resnet50",
-            "encoder_weights": "imagenet"
+            "parameters" : {
+                "encoder_name": "swin_encoder",
+                "encoder_weights": "imagenet",
+                "encoder_depth": 4,
+                "decoder_channels": [512, 256, 128, 64]
+            }
         }
     },
 
