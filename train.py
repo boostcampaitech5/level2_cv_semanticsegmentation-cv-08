@@ -12,7 +12,6 @@ import augmentations
 import datasets
 import loss
 import models
-
 from models.encoder.swin_encoder import register_encoder
 from runner import train
 from utils import CLASSES, CosineAnnealingWarmUpRestarts, read_json
@@ -37,7 +36,7 @@ def main(config):
     # Model Define
     if config.base.use == "smp":
         register_encoder()
-        
+
         model = getattr(smp, config.base.smp.model)(
             **config.base.smp.parameters,
             in_channels=3,

@@ -15,16 +15,16 @@ import augmentations
 # utils
 import models
 from datasets import XRayInferenceDataset
+from models.encoder.swin_encoder import register_encoder
 from runner import test
 from utils import CLASSES, read_json
-from models.encoder.swin_encoder import register_encoder
 
 
 def main(config):
     # Load Model
     if config.base.use == "smp":
         register_encoder()
-        
+
         model = getattr(smp, config.base.smp.model)(
             **config.base.smp.parameters,
             in_channels=3,

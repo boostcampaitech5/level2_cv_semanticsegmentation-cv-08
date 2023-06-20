@@ -60,11 +60,16 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                     if isinstance(outputs, collections.OrderedDict):
                         outputs = outputs["out"]
 
-                    if (config.base.use == "pytorch" and (
-                        config.base.pytorch.model.startswith("hrnet")
-                        or config.base.pytorch.model.startswith("Mask"))) or (
-                            config.base.use == "smp" and config.base.smp.parameters.encoder_name == "swin_encoder"
-                        ):
+                    if (
+                        config.base.use == "pytorch"
+                        and (
+                            config.base.pytorch.model.startswith("hrnet")
+                            or config.base.pytorch.model.startswith("Mask")
+                        )
+                    ) or (
+                        config.base.use == "smp"
+                        and config.base.smp.parameters.encoder_name == "swin_encoder"
+                    ):
                         output_h, output_w = outputs.size(-2), outputs.size(-1)
                         mask_h, mask_w = masks.size(-2), masks.size(-1)
 
