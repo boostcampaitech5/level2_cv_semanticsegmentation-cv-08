@@ -1,6 +1,8 @@
 MODEL:
-  NAME: seg_hrnet
-  PRETRAINED: 'pretrained_models/hrnetv2_w48_imagenet_pretrained.pth'
+  NAME: seg_hrnet_ocr
+  NUM_OUTPUTS: 2
+  ALIGN_CORNERS: True
+  PRETRAINED: False
   EXTRA:
     FINAL_CONV_KERNEL: 1
     STAGE1:
@@ -51,6 +53,11 @@ MODEL:
       - 192
       - 384
       FUSE_METHOD: SUM
+  OCR:
+    MID_CHANNELS: 512
+    KEY_CHANNELS: 256
+    DROPOUT: 0.05
+    SCALE: 1
 
 DATASET:
   NUM_CLASSES: 29

@@ -60,7 +60,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                     if isinstance(outputs, collections.OrderedDict):
                         outputs = outputs["out"]
 
-                    if config.base.use == "pytorch" and config.base.pytorch.model == "hrnet":
+                    if config.base.use == "pytorch" and (
+                        config.base.pytorch.model.startswith("hrnet")
+                        or config.base.pytorch.model.startswith("Mask")
+                    ):
                         output_h, output_w = outputs.size(-2), outputs.size(-1)
                         mask_h, mask_w = masks.size(-2), masks.size(-1)
 
@@ -95,7 +98,10 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 if isinstance(outputs, collections.OrderedDict):
                     outputs = outputs["out"]
 
-                if config.base.use == "pytorch" and config.base.pytorch.model == "hrnet":
+                if config.base.use == "pytorch" and (
+                    config.base.pytorch.model.startswith("hrnet")
+                    or config.base.pytorch.model.startswith("Mask")
+                ):
                     output_h, output_w = outputs.size(-2), outputs.size(-1)
                     mask_h, mask_w = masks.size(-2), masks.size(-1)
 
@@ -168,7 +174,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
             },
             os.path.join(config.save_model_dir, "last.pth"),
         )
-        print(f"Epoch {epoch} : {(ed-st)} s")
+        print(f"Epoch {epoch+1} : {(ed-st)} s")
 
     print(f"Done !!")
     print(f"Best performance at epoch: {best_epoch} dice: {best_dice:.6f}")

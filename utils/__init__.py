@@ -3,6 +3,7 @@ from .util import (
     CLASSES,
     IND2CLASS,
     PALETTE,
+    CosineAnnealingWarmUpRestarts,
     decode_rle_to_mask,
     encode_mask_to_rle,
     label2rgb,
@@ -20,4 +21,5 @@ __all__ = [
     "decode_rle_to_mask",
     "label2rgb",
     "read_json",
+    "CosineAnnealingWarmUpRestarts",
 ]
