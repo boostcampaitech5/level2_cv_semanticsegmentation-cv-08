@@ -17,14 +17,16 @@ import models
 from datasets import XRayInferenceDataset
 from runner import test
 from utils import CLASSES, read_json
+from models.encoder.swin_encoder import register_encoder
 
 
 def main(config):
     # Load Model
     if config.base.use == "smp":
+        register_encoder()
+        
         model = getattr(smp, config.base.smp.model)(
-            encoder_name=config.base.smp.encoder_name,
-            encoder_weights=config.base.smp.encoder_weights,
+            **config.base.smp.parameters,
             in_channels=3,
             classes=len(CLASSES),
         )

@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch.autograd import Function
+from .msssimLoss import MSSSIM
 
 def BCEWithLogitsLoss():
     return nn.BCEWithLogitsLoss()
@@ -67,6 +68,25 @@ class BCEDiceLoss:
         pred = F.sigmoid(pred)
         dice = self.dice_loss(pred, target)
         loss = bce * self.bce_weight + dice * (1 - self.bce_weight)
+        return loss
+    
+class UNet3pHybridLoss:
+    def __init__(self):
+        self.focal_loss = FocalLoss()
+        self.Iou_loss = IoULoss()
+        self.msssim_loss = MSSSIM()
+    
+    def __call__(self, pred, target):
+        focal = self.focal_loss(pred, target)
+        iou = self.Iou_loss(pred, target)
+        pred = F.sigmoid(pred)
+        msssim_list = []
+        for i in range(29):
+            msssim_list.append(self.msssim_loss(pred[:, i:i+1, :, :], target[:, i:i+1, :, :]))
+        msssim = 1 - torch.mean(torch.stack(msssim_list))
+        print("focal : ", focal.item(), ", iou : ", iou.item(), ", msssim : ", msssim.item())
+        # print("focal : ", focal.item(), ", iou : ", iou.item())
+        loss = focal + iou # + msssim
         return loss
 
 

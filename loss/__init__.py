@@ -1,4 +1,5 @@
-from .loss import BCEDiceLoss, BCEWithLogitsLoss, DiceLoss, FocalLoss, IoULoss, MSELoss
+from .loss import *
+from .msssimLoss import *
 from .metric import dice_coef
 
 __all__ = [

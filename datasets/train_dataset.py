@@ -76,6 +76,7 @@ class XRayDataset(Dataset):
 
         image = cv2.imread(image_path)
         image = image / 255.0
+        image = image.astype(np.float32)
 
         label_name = self.labelnames[item]
         label_path = os.path.join(self.config.label_dir, label_name)
@@ -249,6 +250,7 @@ class XRayDatasetFast(Dataset):
 
         image = cv2.imread(image_path)
         image = image / 255.0
+        image = image.astype(np.float32)
 
         label_name = self.labelnames[item]
         label_path = os.path.join(self.config.label_dir, label_name)

@@ -1,6 +1,6 @@
 import numpy as np
 import torchvision.transforms as transform
-from albumentations import CenterCrop, Compose, HorizontalFlip, Normalize, Resize, Rotate
+from albumentations import CenterCrop, Compose, HorizontalFlip, Normalize, Resize, Rotate, RandomBrightnessContrast
 
 
 def base_augmentation(resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
@@ -12,6 +12,20 @@ def base_augmentation(resize, norm=False, mean=0.12397208368416988, std=0.168316
 
 def horizontal_flip(resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
     transforms = [HorizontalFlip(p=0.5), Resize(resize, resize, p=1)]
+    if norm:
+        transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
+    return Compose(transforms)
+
+
+def flipbrightness(resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
+    transforms = [RandomBrightnessContrast(p=0.5), HorizontalFlip(p=0.5), Resize(resize, resize, p=1)]
+    if norm:
+        transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
+    return Compose(transforms)
+
+
+def flipbrightnessrotate(resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
+    transforms = [RandomBrightnessContrast(p=0.5), HorizontalFlip(p=0.5), Rotate(limit=30, p=0.3), Resize(resize, resize, p=1)]
     if norm:
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
     return Compose(transforms)
