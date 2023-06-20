@@ -396,7 +396,9 @@ class XRayDatasetFast(Dataset):
                 target_image = (
                     cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.0
                 )
-                target_label_path = os.path.join(self.config.label_dir, self.labelnames[i].replace('npy', 'json'))
+                target_label_path = os.path.join(
+                    self.config.label_dir, self.labelnames[i].replace("npy", "json")
+                )
 
                 with open(target_label_path, "r") as f:
                     target_annotations = json.load(f)
