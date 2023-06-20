@@ -315,12 +315,15 @@ class XRayDatasetFast(Dataset):
         # Load Data
         pngs = glob(os.path.join(config.image_dir, "*", "*.png"))
         npys = glob(os.path.join(config.label_dir, "*", "*.npy"))
+        jsons = glob(os.path.join(config.label_dir, "*", "*.json"))
 
         self.pngs = sorted(pngs)
         self.npys = sorted(npys)
+        self.jsons = sorted(jsons)
 
         _filenames = np.array(self.pngs)
         _labelnames = np.array(self.npys)
+        _jsons = np.array(self.jsons)
 
         # split train-valid
         # 한 폴더 안에 한 인물의 양손에 대한 `.dcm` 파일이 존재하기 때문에
@@ -338,6 +341,7 @@ class XRayDatasetFast(Dataset):
 
         filenames = []
         labelnames = []
+        label_jsons = []
         for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
             if self.is_train:
                 # 0번을 validation dataset으로 사용합니다.
@@ -346,16 +350,19 @@ class XRayDatasetFast(Dataset):
 
                 filenames += list(_filenames[y])
                 labelnames += list(_labelnames[y])
+                label_jsons += list(_jsons[y])
 
             else:
                 filenames = list(_filenames[y])
                 labelnames = list(_labelnames[y])
+                label_jsons = list(_jsons[y])
 
                 # skip i > 0
                 break
 
         self.filenames = filenames
         self.labelnames = labelnames
+        self.label_jsons = label_jsons
 
     def __len__(self):
         return len(self.filenames)
@@ -396,7 +403,7 @@ class XRayDatasetFast(Dataset):
                 target_image = (
                     cv2.imread(os.path.join(self.config.image_dir, self.filenames[i])) / 255.0
                 )
-                target_label_path = os.path.join(self.config.label_dir, self.labelnames[i])
+                target_label_path = os.path.join(self.config.label_dir, self.label_jsons[i])
 
                 with open(target_label_path, "r") as f:
                     target_annotations = json.load(f)
