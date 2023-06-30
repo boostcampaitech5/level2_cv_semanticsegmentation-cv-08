@@ -1,4 +1,5 @@
 from albumentations import Compose, HorizontalFlip, Normalize, Resize, Rotate, RandomBrightnessContrast
+from albumentations.pytorch.transforms import ToTensorV2
 import numpy as np
 from typing import Union
 import torchvision.transforms as transform
@@ -10,16 +11,16 @@ def get_size(resize: Union[int, list, tuple]):
 
 def base_augmentation(resize, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
     resize = get_size(resize)
-    transforms = [Resize(resize, resize, p=1)]
+    transforms = [Resize(resize, resize, p=1), ToTensorV2(transpose_mask=True)]
     if norm:
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
     return Compose(transforms)
 
 def horizontal_flip(resize, p=0.5, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
     resize = get_size(resize)
-    transforms = [HorizontalFlip(p=p), Resize(resize, resize, p=1)]
+    transforms = [HorizontalFlip(p=p), Resize(resize, resize, p=1), ToTensorV2(transpose_mask=True)]
     if norm:
-        transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
+        transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0), )
     return Compose(transforms)
 
 def rotate(resize, limit=30, p=0.5, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
@@ -31,7 +32,7 @@ def rotate(resize, limit=30, p=0.5, norm=False, mean=0.12397208368416988, std=0.
 
 def rotate_flip(resize, limit=30, p_rotate=0.5, p_flip=0.5, norm=False, mean=0.12397208368416988, std=0.16831689773326278):
     resize = get_size(resize)
-    transforms = [Rotate(limit=limit, p=p_rotate), HorizontalFlip(p=p_flip), Resize(resize, resize, p=1)]
+    transforms = [Rotate(limit=limit, p=p_rotate), HorizontalFlip(p=p_flip), Resize(resize, resize, p=1), ToTensorV2(transpose_mask=True)]
     if norm:
         transforms.append(Normalize(mean=mean, std=std, max_pixel_value=1.0, p=1.0))
     return Compose(transforms)

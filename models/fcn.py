@@ -5,6 +5,7 @@ from torchvision import models
 def conv_block(in_channels, out_channels, kernel_size, stride, padding):
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding),
+        nn.BatchNorm2d(out_channels),
         nn.ReLU(inplace=True)
     )
 class fcn8_7d(nn.Module):
@@ -23,31 +24,31 @@ class fcn8_7d(nn.Module):
         )
         self.conv3 = nn.Sequential(
             conv_block(128, 256, 3, 1, 1),
-            conv_block(256, 256, 3, 1, 1),
+            # conv_block(256, 256, 3, 1, 1),
             conv_block(256, 256, 3, 1, 1),
             nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
         )
         self.conv4 = nn.Sequential(
             conv_block(256, 256, 3, 1, 1),
-            conv_block(256, 256, 3, 1, 1),
+            # conv_block(256, 256, 3, 1, 1),
             conv_block(256, 256, 3, 1, 1),
             nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
         )
         self.conv5 = nn.Sequential(
             conv_block(256, 512, 3, 1, 1),
-            conv_block(512, 512, 3, 1, 1),
+            # conv_block(512, 512, 3, 1, 1),
             conv_block(512, 512, 3, 1, 1),
             nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
         )
         self.conv6 = nn.Sequential(
             conv_block(512, 512, 3, 1, 1),
-            conv_block(512, 512, 3, 1, 1),
+            # conv_block(512, 512, 3, 1, 1),
             conv_block(512, 512, 3, 1, 1),
             nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
         )
         self.conv7 = nn.Sequential(
             conv_block(512, 1024, 3, 1, 1),
-            conv_block(1024, 1024, 3, 1, 1),
+            # conv_block(1024, 1024, 3, 1, 1),
             conv_block(1024, 1024, 3, 1, 1),
             nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
         )                
@@ -306,11 +307,13 @@ class fcn32(nn.Module):
 
 
 class fcn_resnet50(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, in_channels=1):
         super().__init__()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = models.segmentation.fcn_resnet50(pretrained=True)
         self.model.classifier[4] = nn.Conv2d(512, num_classes, kernel_size=1)
+        if in_channels == 1:
+            self.model.backbone.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 
     def forward(self, image):
         return self.model(image)["out"]
@@ -339,6 +342,6 @@ class fcn_resnet101(nn.Module):
         return outputs
 
 if __name__ == "__main__":
-    model = fcn8(29)
+    model = fcn_resnet50(29)
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
-    print(model(torch.rand((1, 1024, 1024))).shape)
+    print(model(torch.rand((1, 1, 1024, 1024))).shape)

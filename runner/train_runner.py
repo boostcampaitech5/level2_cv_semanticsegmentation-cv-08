@@ -41,7 +41,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
 
     for epoch in range(config.epochs):
         st = time.time()
-
+        if isinstance(config.accumulation_step, list):
+            print(f"Epoch {epoch+1} Accumulation Step : {config.accumulation_step[epoch]}")
         if config.wandb.use:
             wandb.log({"train/learning_rate" : lr_scheduler.get_last_lr()[0]})
             wandb.log({"epoch": epoch})
@@ -52,7 +53,7 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
             if config.fp16:
                 with torch.cuda.amp.autocast():
                     # gpu 연산을 위해 device 할당
-                    images, masks = images.cuda(), masks.cuda()
+                    images, masks = images.float().cuda(), masks.float().cuda()
                     model = model.cuda()
 
                     # inference
@@ -80,11 +81,17 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                         loss = criterion(outputs, masks)
 
                 scaler.scale(loss).backward()
-
-                if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
-                    scaler.step(optimizer)
-                    optimizer.zero_grad()
-                    scaler.update()
+                if isinstance(config.accumulation_step, int):
+                    if ((step + 1) % config.accumulation_step == 0) or ((step + 1) == len(data_loader)):
+                        scaler.step(optimizer)
+                        optimizer.zero_grad()
+                        scaler.update()                        
+                else:
+                    acc_step = config.accumulation_step[epoch] if epoch < len(config.accumulation_step) else config.accumulation_step[-1]
+                    if ((step + 1) % acc_step == 0) or ((step + 1) == len(data_loader)):
+                        scaler.step(optimizer)
+                        optimizer.zero_grad()
+                        scaler.update()
             else:
                 # gpu 연산을 위해 device 할당
                 images, masks = images.cuda(), masks.cuda()
@@ -148,8 +155,8 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
                 torch.save(
                     {
                         "model_state_dict": model.state_dict(),
-                        "optimizer_state_dict": optimizer.state_dict(),
-                        "scheduler_state_dict": lr_scheduler.state_dict(),
+                        # "optimizer_state_dict": optimizer.state_dict(),
+                        # "scheduler_state_dict": lr_scheduler.state_dict(),
                     },
                     os.path.join(config.save_model_dir, config.model_file_name),
                 )
@@ -163,11 +170,22 @@ def train(config, model, data_loader, val_loader, criterion, optimizer, lr_sched
 
         ed = time.time()
 
+
+        # if (epoch+1) > 10:
+        #     prev_checkpoint_path = os.path.join(config.save_model_dir, f"last_{(epoch+1) - 10}.pth")
+        #     if os.path.exists(prev_checkpoint_path):
+        #         os.remove(prev_checkpoint_path)
+        # torch.save(
+        #     {
+        #         "model_state_dict": model.state_dict(),
+        #     },
+        #     os.path.join(config.save_model_dir, f"last_{epoch+1}.pth"),
+        # )                
         torch.save(
             {
                 "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "scheduler_state_dict": lr_scheduler.state_dict(),
+                # "optimizer_state_dict": optimizer.state_dict(),
+                # "scheduler_state_dict": lr_scheduler.state_dict(),
             },
             os.path.join(config.save_model_dir, "last.pth"),
         )
@@ -190,7 +208,7 @@ def valid(config, epoch, model, data_loader, criterion, thr=0.5):
         cnt = 0
 
         for step, (images, masks) in enumerate(data_loader):
-            images, masks = images.cuda(), masks.cuda()
+            images, masks = images.float().cuda(), masks.float().cuda()
             model = model.cuda()
 
             outputs = model(images)

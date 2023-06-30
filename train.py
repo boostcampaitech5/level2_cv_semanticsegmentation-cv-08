@@ -30,8 +30,8 @@ def main(config):
             project=config.wandb.project,
             name=config.wandb.run_name,
             config=config,
-            # id="4jdhzoxq",
-            # resume="must"
+            id=config.wandb.id if config.wandb.id else None,
+            resume=config.wandb.resume if config.wandb.resume else None
         )
 
     # Model Define
@@ -43,8 +43,22 @@ def main(config):
             classes=len(CLASSES),
         )
     else:
-        model = getattr(models, config.base.pytorch.model)(len(CLASSES))
+        model = getattr(models, config.base.pytorch.model)(len(CLASSES), 3 if not config.gray else 1)
 
+    # 학습된 Model Info Load
+    if config.resume_from:
+        print(f"Load {config.resume_from}")
+        if os.path.splitext(config.resume_from)[1] == ".pt":
+            model = torch.load(config.resume_from)
+        else:
+            checkpoint = torch.load(config.resume_from)
+            if config.base.use == "pytorch" and list(checkpoint["model_state_dict"].keys())[0].split('.')[0] != "model":
+                checkpoint = {'model.' + k : v for k, v in checkpoint["model_state_dict"].items()}
+                model.load_state_dict(checkpoint)
+            else:
+                model.load_state_dict(checkpoint["model_state_dict"])
+            # optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+            # lr_scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
     model.cuda()
 
     # Optimizer 정의
@@ -58,17 +72,8 @@ def main(config):
     lr_scheduler = partial(getattr(torch.optim.lr_scheduler, config.scheduler.type))(
         optimizer, **config.scheduler.parameters
     )
+    # lr_scheduler = WarmupConstantSchedule(optimizer, warmup_steps=1)
 
-    # 학습된 Model Info Load
-    if config.resume_from:
-        print(f"Load {config.resume_from}")
-        if os.path.splitext(config.resume_from)[1] == ".pt":
-            model = torch.load(config.resume_from)
-        else:
-            checkpoint = torch.load(config.resume_from)
-            model.load_state_dict(checkpoint["model_state_dict"])
-            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-            lr_scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
 
     # Augmentation 정의
     train_aug = getattr(augmentations, config.train.augmentations.name)(

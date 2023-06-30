@@ -293,24 +293,39 @@ class XRayDatasetFast(Dataset):
 
         filenames = []
         labelnames = []
-        for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
-            if self.is_train:
-                # 0번을 validation dataset으로 사용합니다.
-                if i == 0:
-                    continue
+        if config.validation:
+            groups = [os.path.dirname(fname) for fname in _filenames]
 
-                filenames += list(_filenames[y])
-                labelnames += list(_labelnames[y])
+            # dummy label
+            ys = [0 for fname in _filenames]
 
-            else:
-                filenames = list(_filenames[y])
-                labelnames = list(_labelnames[y])
+            # 전체 데이터의 20%를 validation data로 쓰기 위해 `n_splits`를
+            # 5으로 설정하여 KFold를 수행합니다.
+            gkf = GroupKFold(n_splits=10)
 
-                # skip i > 0
-                break
+            filenames = []
+            labelnames = []
+            for i, (x, y) in enumerate(gkf.split(_filenames, ys, groups)):
+                if is_train:
+                    # 0번을 validation dataset으로 사용합니다.
+                    if i == 0:
+                        continue
 
-        self.filenames = filenames
-        self.labelnames = labelnames
+                    filenames += list(_filenames[y])
+                    labelnames += list(_labelnames[y])
+
+                else:
+                    filenames = list(_filenames[y])
+                    labelnames = list(_labelnames[y])
+
+                    # skip i > 0
+                    break
+            self.filenames = filenames
+            self.labelnames = labelnames
+        else:
+            self.filenames = _filenames
+            self.labelnames = _labelnames    
+
         self.is_train = is_train
 
         self.transforms = transforms
@@ -398,11 +413,11 @@ class XRayDatasetFast(Dataset):
             image = result["image"]
             label = result["mask"]
 
-        # to tenser will be done later
-        image = image.transpose(2, 0, 1)  # make channel first
-        label = label.transpose(2, 0, 1)
+        # # to tenser will be done later
+        # image = image.transpose(2, 0, 1)  # make channel first
+        # label = label.transpose(2, 0, 1)
 
-        image = torch.from_numpy(image).float()
-        label = torch.from_numpy(label).float()
+        # image = torch.from_numpy(image).float()
+        # label = torch.from_numpy(label).float()
 
         return image, label

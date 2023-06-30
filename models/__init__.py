@@ -14,5 +14,6 @@ __all__ = [
     "hrnet",
     "UNet_3Plus",
     "UNet_3Plus_DeepSup",
-    "UNet_3Plus_DeepSup_CGM"    
+    "UNet_3Plus_DeepSup_CGM",
+    "fcn8_7d"
 ]

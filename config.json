@@ -2,18 +2,18 @@
     "base": {
         "use": "smp",
         "pytorch": {
-            "model": "UNet_3Plus_DeepSup"
+            "model": "deeplabv3_resnet50"
         },
         "smp": {
             "model": "UnetPlusPlus",
-            "encoder_name": "timm-regnety_320",
-            "encoder_weights": "imagenet"
+            "encoder_name": "resnext101_32x32d",
+            "encoder_weights": "instagram"
         }
     },
-    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_1280_batch-16_copypaste",
-    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_1280_batch-16_copypaste",
+    "save_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet++_resnext101_32x32d_1024",
+    "inference_model_dir": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/unet++_resnext101_32x32d_1024",
     "model_file_name": "best.pth",
-    "resume_from": "/opt/ml/level2_cv_semanticsegmentation-cv-08/model_dir/regnety_320_1280_batch-16_copypaste/best.pth",
+    "resume_from": false,
     "dataset": "XRayDatasetFast",
     "image_dir": "/opt/ml/data/train/DCM",
     "label_dir": "/opt/ml/data/train/outputs_json",
@@ -24,25 +24,25 @@
     "valid_cache_data_dir": "/opt/ml/cache_data_512/valid",
     "train_hdf5_data_dir": "/opt/ml/hdf5_1280_gray/train",
     "valid_hdf5_data_dir": "/opt/ml/hdf5_1280_gray/valid",
-    "epochs": 120,
+    "epochs": 200,
     "train": {
         "batch_size": 2,
-        "num_workers": 4,
+        "num_workers": 8,
         "augmentations": {
-            "name": "rotate_flip",
+            "name": "horizontal_flip",
             "parameters": {
-                "resize": 1280,
-                "p_rotate": 0.3
+                "resize": 1024,
+                "p": 0.5
             }
         }
     },
     "valid": {
         "batch_size": 2,
-        "num_workers": 2,
+        "num_workers": 4,
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
-                "resize": 1280
+                "resize": 1024
             }
         }
     },
@@ -52,14 +52,14 @@
         "augmentations": {
             "name": "base_augmentation",
             "parameters": {
-                "resize": 1280
+                "resize": 1024
             }
         }
     },
     "optimizer": {
         "type": "AdamW",
         "parameters": {
-            "lr": 0.0001,
+            "lr": 1e-5,
             "weight_decay": 1e-06
         }
     },
@@ -69,24 +69,27 @@
         "parameters": {
             "T_0": 5,
             "T_mult": 1,
-            "eta_min": 1e-05
+            "eta_min": 1e-06
         }
     },
     "seed": 42,
     "log_step": 20,
     "val_every": 1,
     "patience_limit": 20,
-    "accumulation_step": 8,
+    "accumulation_step": 1,
     "fp16": true,
     "wandb": {
         "use": true,
         "entity": "ejrtks1020",
         "project": "level2_segmentation",
-        "run_name": "regnety_320_1280_batch-16_copypaste"
+        "run_name": "unet++_resnext101_32x32d_1024",
+        "id": false,
+        "resume": false
     },
     "gray": true,
     "validation": true,
     "copy_paste": {
         "k": 3
-    }
+    },
+    "threshold": 0.5
 }

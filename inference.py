@@ -32,7 +32,7 @@ def main(config):
                 classes=len(CLASSES),
             )
         else:
-            model = getattr(models, config.base.pytorch.model)(len(CLASSES))
+            model = getattr(models, config.base.pytorch.model)(len(CLASSES), 3 if not config.gray else 1)
         model.load_state_dict(
             torch.load(os.path.join(config.save_model_dir, config.model_file_name))["model_state_dict"]
         )  
