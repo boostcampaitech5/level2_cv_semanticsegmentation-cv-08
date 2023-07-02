@@ -27,6 +27,8 @@
 Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하나로, 특히, 딥러닝 기술을 이용한 뼈 Segmentation은 많은 연구가 이루어지고 있으며, 다양한 목적으로 도움을 줄 수 있습니다.
 따라서 우리는 질병 진단, 수술 계획, 의료 장비 제작, 의료 교육 등에 사용될 수 있도록 우수한 성능의 모델을 개발합니다.
 
+## Experiments
+
 ### 1. EDA
 ![competition4](https://github.com/boostcampaitech5/level2_cv_semanticsegmentation-cv-08/assets/74355042/31ca84e4-e0b1-49fa-aba6-0cae9a58500d)
 - 이미지 크기 : 2048 * 2048
