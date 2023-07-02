@@ -7,12 +7,50 @@
 
 ## Changes
 
-**`2023-06-09`**: 
-- Add Rotate, Horizontal Flip Augmentation
+**`2023-06-07`**: 
+- create baseline (pytorch & smp)
+- Add pickle dataset
+- Add webhook
 
 **`2023-06-09`**: 
-- Refactoring Baseline
+- Refactoring
 - Integration modules
+- Add fp16, wandb logging, early stopping
+- Add Rotate, Horizontal Flip Augmentation
+- Add Github Actions for black formatting
+
+**`2023-06-10`**: 
+- Add train resume, save last checkpoint
+- Add model modules
+
+**`2023-06-11`**: 
+- Fix loss calculation
+
+**`2023-06-12`**: 
+- Add Stratified Group KFold
+- Fix loss calculation by GPU
+- Add json to numpy converter for fast label load
+- Add streamlit dashborad for inference
+
+**`2023-06-13`**: 
+- Add scheduler
+- Fix wandb logging
+- Add streamlit dashborad for validation
+
+**`2023-06-14`**: 
+- Add hdf5 dataset
+
+**`2023-06-15`**: 
+- Refactoring
+- Add Adjust Contrast Augmentation
+- Add HRNet
+
+**`2023-06-16`**: 
+- Add UNet3+
+- Fix loss calculation
+
+**`2023-06-17`**: 
+- Add HRNet_OCR, Mask2Former
 
 <br />
 
