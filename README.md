@@ -30,7 +30,15 @@ Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하�
 ## Experiments
 
 ### 1. EDA
-![competition4](https://github.com/boostcampaitech5/level2_cv_semanticsegmentation-cv-08/assets/74355042/31ca84e4-e0b1-49fa-aba6-0cae9a58500d)
+
+<p align="center"><img src="https://github.com/boostcampaitech5/level2_cv_semanticsegmentation-cv-08/assets/74355042/471470c5-c320-49d6-b2b6-236caf264a36" width="500" height="500"/></p>
+
+<br>
+
+<p align="center"><a href="https://kr.freepik.com/free-vector/bone-inside-the-human-hand_22725580.htm#query=%EC%86%90%EB%AA%A9%20%EB%BC%88&position=0&from_view=keyword&track=ais">작가 brgfx</a> 출처 Freepik</p>
+
+<br>
+
 - 이미지 크기 : 2048 * 2048
 - 이미지 픽셀 평균 값: 0.1239
 - 이미지 픽셀 표준 편차 값 : 0.1683
@@ -38,7 +46,7 @@ Bone Segmentation은 인공지능 분야에서 중요한 응용 분야 중 하�
 - 전체 테스트 이미지 수 : 300장
 - 클래스 수 : 29
 - 나이, 성별, 키, 몸무게이 따른 분포
-![image](https://github.com/boostcampaitech5/level2_cv_semanticsegmentation-cv-08/assets/74355042/30baf9b8-d8b6-4273-890b-a3bb08b4f2bf)
+  ![seg2](https://github.com/boostcampaitech5/level2_cv_semanticsegmentation-cv-08/assets/74355042/9fffd76d-0e44-468c-86ef-294ce0e710db)
 - 손목이 꺾인 데이터 : train에는 약 10%, test에는 약 50%
 - 기타 : 네일아트, 반지, 철심, 골절 데이터 소량
 - Miss Label 데이터 소량
